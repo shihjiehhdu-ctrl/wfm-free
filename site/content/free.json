@@ -1,0 +1,1470 @@
+{
+ "pack": "free",
+ "version": "2026.10.1",
+ "title": "我的詞族地圖・免費版",
+ "units": [
+  {
+   "unit": 1,
+   "stage": "拆",
+   "title": "字是拼起來的：複合字與否定字首",
+   "morphemes": [
+    "cmp",
+    "un",
+    "in",
+    "dis",
+    "mis",
+    "non"
+   ],
+   "task": "在書裡找出至少 6 個帶 un、in（im、il、ir）、dis、mis 或 non 的字，再加上 2 個複合字。陷阱字也算數。",
+   "segments": [
+    {
+     "id": "w1-s0",
+     "title": "開場",
+     "minutes": 3,
+     "audio": "audio/w1-s0.mp3",
+     "slides": [
+      "W1 字是拼起來的",
+      "三件事：認出零件、推出意思、想起家族",
+      "三個單元：W1 字首、W4 字尾、W9 字根"
+     ],
+     "script": [
+      "歡迎來到「我的詞族地圖」。你已經讀了很多英文書，很多字不用翻譯就懂。這個單元要帶你換一個角度看字：很多英文字，是用零件拼起來的。",
+      "學會看零件，你可以做三件事。第一，認出一個長字裡有哪些零件。第二，用零件加上句子，推出它的意思。第三，看到同一個零件，就想起它的一整個家族。",
+      "免費版有三個單元：W1 看字首，W4 看字尾，W9 看字根，剛好是一個字的頭、尾和中間。每個單元都一樣：先聽講解，再到你正在讀的書裡找字，把它記到地圖上。〔停頓 1 秒〕我不會給你一張單字表。你找到、你拆開、你確認過的字，才會真的變成你的字。"
+     ],
+     "checks": []
+    },
+    {
+     "id": "w1-s1",
+     "title": "詞素：字的最小零件",
+     "minutes": 5,
+     "audio": "audio/w1-s1.mp3",
+     "slides": [
+      "class + room、home + work、birth + day",
+      "詞素：一個字裡帶有意思的最小零件",
+      "延伸：outcome、input",
+      "陷阱字：butterfly"
+     ],
+     "script": [
+      "先看幾個你早就會的字：classroom、homework、birthday。〔停頓 2 秒〕每一個都是兩個字黏在一起。class 加 room，就是上課的房間：*Our classroom is on the second floor.*",
+      "像 class、room 這樣帶著意思、可以和別的零件拼在一起的單位，叫做詞素：一個字裡面，帶有意思的最小零件。兩個完整的字拼成一個字，叫複合字。",
+      "複合字在學術文章裡也很常見。換你猜：out 加 come，outcome 是什麼？〔停頓 3 秒〕事情最後「出來」的樣子：*Nobody could predict the outcome of the game.* 那 input 呢？〔停頓 3 秒〕放進來的想法或東西：*The teacher asked for our input on the class trip.*",
+      "但不是每個看起來拼得起來的字都能這樣拆。butterfly 裡有 butter，也有 fly，可是牠跟奶油沒有關係：*A butterfly landed on my hand.* 這種字叫陷阱字：長得像，意思卻接不起來。"
+     ],
+     "checks": [
+      {
+       "type": "mcq",
+       "q": "Nobody could predict the outcome of the game. 這裡的 outcome 指的是什麼？",
+       "options": [
+        "比賽最後的結果",
+        "走出球場",
+        "比賽的規則"
+       ],
+       "answer": 0,
+       "explain": "out＋come：最後「出來」的樣子。"
+      },
+      {
+       "type": "mcq",
+       "q": "下面哪一個是陷阱字，不能照字面拆？",
+       "options": [
+        "homework",
+        "butterfly",
+        "bedroom"
+       ],
+       "answer": 1,
+       "explain": "butterfly 和 butter、fly 的意思接不起來。"
+      }
+     ]
+    },
+    {
+     "id": "w1-s2",
+     "title": "un-：不、反過來",
+     "minutes": 5,
+     "audio": "audio/w1-s2.mp3",
+     "slides": [
+      "unhappy、unkind、unfair",
+      "un + 形容詞＝不…",
+      "un + 動詞＝把動作反過來：unlock、uncover",
+      "陷阱字：uncle、uniform、until、understand"
+     ],
+     "script": [
+      "字首放在字的前面，像一個開關，會改變後面那個字的方向。第一個字首是 un。",
+      "你一定認得 unhappy、unkind、unfair。un 放在形容詞前面，意思是「不」：*It's unfair that he got two turns.* 換你猜 unfamiliar。familiar 是熟悉的，那 unfamiliar 呢？〔停頓 3 秒〕還不熟、沒見過的：*The new school felt unfamiliar at first.*",
+      "un 還有第二個意思。放在動詞前面，它表示「把動作反過來」。lock 是鎖上，unlock 是把鎖打開：*She unlocked the door with a small key.* cover 是蓋住，uncover 是把蓋子拿掉，讓藏起來的東西露出來：*The reporter uncovered the truth.*",
+      "un 的陷阱字特別多：uncle、uniform、until、understand。它們的開頭剛好是 u、n，但都不是「不」。uniform 的 uni 是「一個」，大家穿成一個樣子；understand 也不是「不站著」。"
+     ],
+     "checks": [
+      {
+       "type": "mcq",
+       "q": "She unlocked the door with a small key. 她對門做了什麼？",
+       "options": [
+        "把鎖打開",
+        "沒有鎖門",
+        "鎖了兩次"
+       ],
+       "answer": 0,
+       "explain": "un＋動詞：把 lock 這個動作反過來。"
+      },
+      {
+       "type": "mcq",
+       "q": "哪一個字的 un「不是」字首？",
+       "options": [
+        "unfair",
+        "uniform",
+        "unkind"
+       ],
+       "answer": 1,
+       "explain": "uniform 的 uni 是「一個」。"
+      }
+     ]
+    },
+    {
+     "id": "w1-s3",
+     "title": "in- / im- / il- / ir-：不",
+     "minutes": 6,
+     "audio": "audio/w1-s3.mp3",
+     "slides": [
+      "incorrect、impossible、impolite、independent",
+      "拼法跟著後面的字母變：im + p／b／m，il + l，ir + r",
+      "延伸：illegal、irregular、irresponsible、inaccurate",
+      "另一個 in＝進入：income、indoor、import",
+      "陷阱字：important、insect、interest"
+     ],
+     "script": [
+      "第二個否定字首是 in。它和 un 一樣是「不」，可是它會換衣服。",
+      "先看 incorrect：in 加 correct，不正確。可是 possible 前面不是 in，而是 im：impossible。polite 也一樣：impolite。因為 p 要先把雙唇閉起來，m 也是，im 唸起來比較順。後面是 l 的時候，變成 il：*It is illegal to drive without a license.* 後面是 r 的時候，變成 ir：regular 變 irregular，responsible 變 irresponsible。",
+      "所以看到 im、il、ir，先想一想：它是不是 in 換了衣服？",
+      "要小心，in 還有另一個意思：「進入、在裡面」。income 是進來的錢，indoor 是在室內：*We played indoor games because it was raining.* 這裡的 in 不是「不」。同一個零件可能有兩種意思，要回到句子裡看。",
+      "陷阱字：important、insect、interest。它們開頭有 in 或 im，可是拆不出「不」。important 不是「不重要」，剛好相反。"
+     ],
+     "checks": [
+      {
+       "type": "mcq",
+       "q": "下面哪一個拼法是對的？",
+       "options": [
+        "inlegal",
+        "illegal",
+        "unlegal"
+       ],
+       "answer": 1,
+       "explain": "後面是 l，in 換成 il。"
+      },
+      {
+       "type": "mcq",
+       "q": "We played indoor games because it was raining. 這裡的 in 是什麼意思？",
+       "options": [
+        "不",
+        "在裡面",
+        "再一次"
+       ],
+       "answer": 1,
+       "explain": "in 的第二個意思：在裡面。"
+      },
+      {
+       "type": "mcq",
+       "q": "important 可以拆成 im＋portant，意思是「不重要的」。",
+       "options": [
+        "對",
+        "錯"
+       ],
+       "answer": 1,
+       "explain": "important 是陷阱字。"
+      }
+     ]
+    },
+    {
+     "id": "w1-s4",
+     "title": "dis-、mis-、non-",
+     "minutes": 5,
+     "audio": "audio/w1-s4.mp3",
+     "slides": [
+      "disappear、dishonest、disagree、dislike",
+      "mistake、misunderstand、mislead",
+      "nonsense、nonprofit",
+      "陷阱字：discuss、distance、miss"
+     ],
+     "script": [
+      "dis 也是「不」或「相反」，常常放在動詞前面。appear 是出現，disappear 是不見了：*The sun disappeared behind the clouds.* agree 是同意，disagree 呢？〔停頓 2 秒〕*I disagree with you about the movie.*",
+      "mis 的意思是「錯」。mistake 是拿錯、弄錯。換你猜 misunderstand：〔停頓 3 秒〕理解錯了：*I think you misunderstood my question.*",
+      "non 的意思是「非、不是」。nonsense，沒有道理的話：*Stop talking nonsense.* nonprofit，不是為了賺錢的組織。",
+      "陷阱字：discuss、distance 的 dis 不是「不」；miss 的 mis 也不是「錯」，miss 本身就是一個完整的字。"
+     ],
+     "checks": [
+      {
+       "type": "mcq",
+       "q": "I think you misunderstood my question. 發生了什麼事？",
+       "options": [
+        "你理解錯了",
+        "你沒聽到",
+        "你同意了"
+       ],
+       "answer": 0,
+       "explain": "mis＋understand：理解錯了。"
+      },
+      {
+       "type": "mcq",
+       "q": "哪一個字的 dis「不是」否定的意思？",
+       "options": [
+        "disappear",
+        "dishonest",
+        "discuss"
+       ],
+       "answer": 2,
+       "explain": "discuss 是陷阱字。"
+      }
+     ]
+    },
+    {
+     "id": "w1-s5",
+     "title": "單元任務",
+     "minutes": 3,
+     "audio": "audio/w1-s5.mp3",
+     "slides": [
+      "書 → App 採集 → 地圖",
+      "目標：至少 6 個字首字，加上 2 個複合字"
+     ],
+     "script": [
+      "這個單元的任務：打開你正在讀的書，找出至少 6 個帶 un、in、im、il、ir、dis、mis 或 non 的字，再加上 2 個複合字。找到後，先別急著查字典。",
+      "在 App 裡把字拆開。先寫零件的意思，再用你自己的話說它在書裡那一句的意思。可以用英文換句話說，也可以描述句子裡發生了什麼事，不需要找一個中文詞來對譯。",
+      "找到陷阱字也算數。把它標成「不能拆」，它會出現在地圖的陷阱區。拆好之後，App 會告訴你這個拆法有沒有在課程詞表裡。"
+     ],
+     "checks": []
+    }
+   ]
+  },
+  {
+   "unit": 4,
+   "stage": "轉",
+   "title": "名詞字尾：把動作打包成東西",
+   "morphemes": [
+    "tion",
+    "ment",
+    "ness"
+   ],
+   "task": "在書裡找出至少 6 個帶 -tion／-sion、-ment 或 -ness 的名詞，三個字尾都要有；每個字都填上原本的動詞或形容詞當作詞族。",
+   "segments": [
+    {
+     "id": "w4-s0",
+     "title": "開場",
+     "minutes": 2,
+     "audio": "audio/w4-s0.mp3",
+     "slides": [
+      "W1：字首改變方向",
+      "W4：字尾改變詞性",
+      "decide → decision"
+     ],
+     "script": [
+      "W1 的字首，會改變一個字的方向。這個單元要看字尾。字尾通常不改變意思的核心，卻會改變一個字在句子裡的「工作」，也就是詞性。",
+      "decide 是動詞，decision 是名詞。同一個意思，換一個字尾，就能放到句子裡不同的位置：*We decided to stay.* *Staying was a hard decision.*",
+      "這個單元看三個名詞字尾：tion、ment、ness。它們把一個動作或一種狀態，打包成一個「東西」。"
+     ],
+     "checks": []
+    },
+    {
+     "id": "w4-s1",
+     "title": "-tion / -sion",
+     "minutes": 7,
+     "audio": "audio/w4-s1.mp3",
+     "slides": [
+      "act → action、invite → invitation、decide → decision",
+      "拼法：invite 去掉 e；decide 的 d 變 s",
+      "延伸：collection、protection、communication、investigation",
+      "陷阱字：station、question"
+     ],
+     "script": [
+      "先看你熟悉的字：act 和 action，invite 和 invitation，decide 和 decision。〔停頓 2 秒〕動詞後面加上 tion 或 sion，就變成名詞。",
+      "注意拼法：invite 去掉 e，再加 ation；decide 的 d 變成 s，再加 ion。字尾常讓前面的字小小地變形，但只要認得前面的字，就認得出它。",
+      "換你猜。collect 是收集，collection 呢？〔停頓 3 秒〕收集起來的一整批東西：*He has a huge collection of comic books.* protect 是保護，protection 呢？〔停頓 3 秒〕*Sunscreen gives your skin protection from the sun.*",
+      "學術文章特別愛這種字：communication、investigation、evaluation。它們看起來很長，拆開以後，前面都是一個動詞：communicate、investigate、evaluate。",
+      "陷阱字：station 和 question。它們有 tion，但前面沒有一個動詞。不是每個 tion 都是從動詞變來的。"
+     ],
+     "checks": [
+      {
+       "type": "mcq",
+       "q": "decide 的名詞是哪一個？",
+       "options": [
+        "decidetion",
+        "decision",
+        "decidement"
+       ],
+       "answer": 1,
+       "explain": "d 變成 s，再加 ion。"
+      },
+      {
+       "type": "mcq",
+       "q": "He has a huge collection of comic books. collection 指的是什麼？",
+       "options": [
+        "他收集的一大批漫畫",
+        "他正在看漫畫",
+        "漫畫的價錢"
+       ],
+       "answer": 0,
+       "explain": "collect＋ion：收集起來的東西。"
+      },
+      {
+       "type": "mcq",
+       "q": "哪一個字的 tion「不是」從動詞變來的？",
+       "options": [
+        "invitation",
+        "station",
+        "protection"
+       ],
+       "answer": 1,
+       "explain": "station 是陷阱字。"
+      }
+     ]
+    },
+    {
+     "id": "w4-s2",
+     "title": "-ment",
+     "minutes": 6,
+     "audio": "audio/w4-s2.mp3",
+     "slides": [
+      "move → movement",
+      "agree → agreement、pay → payment、improve → improvement",
+      "develop → development",
+      "陷阱字：comment、apartment、department"
+     ],
+     "script": [
+      "第二個名詞字尾是 ment。move 是動，movement 是動的這件事：*Every movement of the dancer was careful.*",
+      "ment 比 tion 好認，因為前面的動詞幾乎不變形。agree，agreement：*The two countries signed an agreement.* pay，payment。換你猜 improve：〔停頓 3 秒〕improvement，變好的那一部分：*Your writing shows a lot of improvement.*",
+      "develop 加 ment，是 development：*The development of the town changed the river.* 這種字在自然和社會課本裡到處都是。",
+      "陷阱字：comment、apartment、department。拆掉 ment，剩下的部分和整個字的意思接不起來。看到 ment，先檢查前面是不是一個你認得的動詞。"
+     ],
+     "checks": [
+      {
+       "type": "mcq",
+       "q": "Your writing shows a lot of improvement. 這句話在說什麼？",
+       "options": [
+        "你的寫作變好了",
+        "你寫了很多字",
+        "你需要重寫"
+       ],
+       "answer": 0,
+       "explain": "improve＋ment：變好的那一部分。"
+      },
+      {
+       "type": "mcq",
+       "q": "哪一個不能拆成「動詞＋ment」？",
+       "options": [
+        "payment",
+        "agreement",
+        "apartment"
+       ],
+       "answer": 2,
+       "explain": "apartment 是陷阱字。"
+      }
+     ]
+    },
+    {
+     "id": "w4-s3",
+     "title": "-ness",
+     "minutes": 5,
+     "audio": "audio/w4-s3.mp3",
+     "slides": [
+      "kind → kindness、dark → darkness、weak → weakness",
+      "happy → happiness：y 變 i",
+      "延伸：illness、awareness",
+      "陷阱字：business（語意已漂移）"
+     ],
+     "script": [
+      "ness 加在形容詞後面，把一種狀態變成名詞。kind 是好心的，kindness 是好心這件事：*Thank you for your kindness.* dark 是暗的，darkness 是一片黑暗：*The room was filled with darkness.*",
+      "happy 加 ness 的時候，y 會變成 i：happiness。看到 iness，就想想原本的字是不是 y 結尾。",
+      "換你猜：aware 是知道、注意到，awareness 呢？〔停頓 3 秒〕對一件事的注意和了解：*The project raised awareness about plastic waste.*",
+      "最有名的陷阱字是 business。它原本真的是 busy 加 ness，忙碌的狀態，可是現在指的是生意和公司：*Her family runs a small business.* 意思已經漂走了，要整個字一起記。"
+     ],
+     "checks": [
+      {
+       "type": "mcq",
+       "q": "happy 加 ness 要怎麼拼？",
+       "options": [
+        "happyness",
+        "happiness",
+        "happness"
+       ],
+       "answer": 1,
+       "explain": "y 變成 i。"
+      },
+      {
+       "type": "mcq",
+       "q": "business 現在的意思就是「很忙的狀態」。",
+       "options": [
+        "對",
+        "錯"
+       ],
+       "answer": 1,
+       "explain": "business 拆得開，但語意已經漂移。"
+      }
+     ]
+    },
+    {
+     "id": "w4-s4",
+     "title": "為什麼要把動作打包成名詞",
+     "minutes": 4,
+     "audio": "audio/w4-s4.mp3",
+     "slides": [
+      "The town developed quickly.",
+      "The quick development of the town surprised everyone.",
+      "名詞可以被形容，也可以當主詞"
+     ],
+     "script": [
+      "最後想一個問題：既然有 develop，為什麼還需要 development？",
+      "比比看這兩句。*The town developed quickly.* 這是在說一件事。*The quick development of the town surprised everyone.* 這裡，development 變成一個東西，可以被形容，也可以當主詞，後面再接新的訊息。",
+      "把動作打包成名詞，一個句子就能裝進更多訊息。這是學術文章最常用的技巧之一。現在你只要先開始注意：書裡的 tion、ment、ness，常常就是一個被打包起來的動作或狀態。"
+     ],
+     "checks": [
+      {
+       "type": "mcq",
+       "q": "The quick development of the town surprised everyone. 是什麼讓大家驚訝？",
+       "options": [
+        "the town",
+        "the quick development of the town",
+        "everyone"
+       ],
+       "answer": 1,
+       "explain": "整個名詞片語是主詞。"
+      }
+     ]
+    },
+    {
+     "id": "w4-s5",
+     "title": "單元任務",
+     "minutes": 3,
+     "audio": "audio/w4-s5.mp3",
+     "slides": [
+      "目標：至少 6 個名詞，三個字尾都要有",
+      "每個字填上原本的動詞或形容詞 → 詞性表"
+     ],
+     "script": [
+      "這個單元的任務：在書裡找出至少 6 個帶 tion、sion、ment 或 ness 的名詞，三個字尾都要有。",
+      "每找到一個字，試著找出它原本的動詞或形容詞，填在「歸入詞族」，例如 develop。這樣「詞性表」就會把 develop 和 development 排在一起。",
+      "如果拆掉字尾以後，剩下的部分接不起來，像 station，就把它標成「不能拆」。"
+     ],
+     "checks": []
+    }
+   ]
+  },
+  {
+   "unit": 9,
+   "stage": "根",
+   "title": "字根：移動家族",
+   "morphemes": [
+    "port",
+    "mit",
+    "duc",
+    "ject"
+   ],
+   "task": "在書裡找出含有 port、mit／mis、duc、ject 的字，四個家族都要有，至少 6 個字。",
+   "segments": [
+    {
+     "id": "w9-s0",
+     "title": "開場",
+     "minutes": 2,
+     "audio": "audio/w9-s0.mp3",
+     "slides": [
+      "W9 移動家族",
+      "port、mit、duc、ject",
+      "這週的字，不在這張投影片上，在你的書裡"
+     ],
+     "script": [
+      "前面兩個單元，我們看了字的頭和尾：字首告訴你方向，字尾告訴你詞性。這個單元，我們要打開字的中間，也就是字根。",
+      "這個單元的四個字根，都跟「移動」有關：搬東西、送東西、帶路、丟東西。",
+      "我只會示範幾個字，剩下的字，要你自己到正在讀的書裡找。"
+     ],
+     "checks": []
+    },
+    {
+     "id": "w9-s1",
+     "title": "port：帶著東西移動",
+     "minutes": 7,
+     "audio": "audio/w9-s1.mp3",
+     "slides": [
+      "re port、sup port、air port",
+      "port＝帶著東西移動（中文標籤：搬運）",
+      "延伸：export、import",
+      "半透明：airport",
+      "陷阱字：portion、portrait"
+     ],
+     "script": [
+      "先看三個你一定認得的字：report、support、airport。它們都藏著同一個零件：port。〔停頓 2 秒〕",
+      "port 的核心畫面是「帶著東西移動」。我們拆拆看。re 是「回」，report 就是把消息帶回來：*The reporter reported the news.* support 的 sup 是 sub 的變形，「在下面」；從下面撐著、扛著：*Strong legs support your body.*",
+      "現在換你猜。ex 是「向外」，那 export 呢？〔停頓 3 秒〕往外搬運，把東西搬出這個國家：*The island exports bananas.* 那 import 呢？〔停頓 3 秒〕往內搬，把東西搬進來：*We import oil from other countries.*",
+      "airport 比較特別。這裡的 port 比較接近「港口」，也就是貨物和人進出的地方。它和「搬運」是親戚，但不完全一樣，所以 airport 是半透明的字：拆得開，但要多想一步。",
+      "最後兩個陷阱：portion 和 portrait。它們看起來有 port，卻來自別的字根，和搬運無關。聽聽它們在句子裡的樣子：*She ate a small portion of the cake.* *A portrait of the king hangs on the wall.* 遇到這種字，不要硬拆。"
+     ],
+     "checks": [
+      {
+       "type": "mcq",
+       "q": "The island exports bananas. 這座島對香蕉做了什麼？",
+       "options": [
+        "把香蕉運出去賣",
+        "在港口種香蕉",
+        "報告香蕉的數量"
+       ],
+       "answer": 0,
+       "explain": "ex＋port：往外搬運。"
+      },
+      {
+       "type": "mcq",
+       "q": "下面哪個字的 port「不是」搬運的意思？",
+       "options": [
+        "transport",
+        "portion",
+        "import"
+       ],
+       "answer": 1,
+       "explain": "portion 來自不同字根。"
+      },
+      {
+       "type": "open",
+       "q": "Strong legs support your body. 這裡的 support 和 port 有什麼關係？用一句話說說看。",
+       "ref": "從下面撐著、扛著。"
+      }
+     ]
+    },
+    {
+     "id": "w9-s2",
+     "title": "mit / mis：送出",
+     "minutes": 7,
+     "audio": "audio/w9-s2.mp3",
+     "slides": [
+      "pro mise",
+      "mit／miss／mis＝送出，一個字根有好幾種拼法",
+      "延伸：admit、permit、submit",
+      "字尾連動：permit → permission、admit → admission",
+      "陷阱字：miss、limit"
+     ],
+     "script": [
+      "這個字根你其實早就見過，只是它換了衣服：promise。pro 是「向前」，mise 是「送出」：把一句話往前送出去，讓對方收著。*I promise I'll call you tonight.*",
+      "這個字根有好幾種拼法：mit、miss、mis，都是「送」。看到其中一種，就要想到這個家族。",
+      "來試試看。ad 有「往、到」的意思，admit 是把人送進來：*The school admits 200 students each year.* 也可以是把真話送出來、說出口：*He admitted that he was wrong.* per 是「通過」，permit 是讓你送過去、讓你通過：*Phones are not permitted in the exam room.* sub 是「在下面」，submit 是把東西往下交出去，交到老師或評審手上：*Please submit your essay by Friday.*",
+      "還記得 W4 嗎？名詞字尾一加，拼法也跟著變。permit 變成名詞是 permission，admit 是 admission，t 變成了 ss。",
+      "陷阱字：miss 和 limit。它們的字母裡有 mis 或 mit，但和「送」沒有關係。"
+     ],
+     "checks": [
+      {
+       "type": "mcq",
+       "q": "submit 的 sub 是什麼意思？",
+       "options": [
+        "在下面",
+        "再一次",
+        "向外"
+       ],
+       "answer": 0,
+       "explain": ""
+      },
+      {
+       "type": "mcq",
+       "q": "permit 的名詞是哪一個？",
+       "options": [
+        "permitment",
+        "permission",
+        "permitness"
+       ],
+       "answer": 1,
+       "explain": "t 變成 ss，再加 ion。"
+      },
+      {
+       "type": "mcq",
+       "q": "下面哪一個「不屬於」送出家族？",
+       "options": [
+        "transmit",
+        "mission",
+        "limit"
+       ],
+       "answer": 2,
+       "explain": "limit 是陷阱字。"
+      }
+     ]
+    },
+    {
+     "id": "w9-s3",
+     "title": "duc / duct：引導",
+     "minutes": 6,
+     "audio": "audio/w9-s3.mp3",
+     "slides": [
+      "intro duce、pro duce、e duc ation",
+      "duc／duce／duct＝引導、帶領",
+      "延伸：reduce",
+      "陷阱字：duck"
+     ],
+     "script": [
+      "三個熟悉的字：introduce、produce、education。它們共同的零件是 duc，意思是「引導、帶領」。",
+      "introduce，把人帶進來，帶到大家面前：*Let me introduce my friend Amy.* produce，把東西往前帶出來：*This farm produces rice and tea.*",
+      "education 最有意思。e 是 ex 的縮短版，「向外」。education 原本的畫面，是把一個人的能力「往外帶出來」。下次有人說 education 就是把知識塞進腦袋，你可以用這個字告訴他：字面上剛好相反。",
+      "換你猜：re 是「回」，reduce 是什麼？〔停頓 3 秒〕把東西帶回去、往回縮，讓它變少：*Riding a bike can reduce air pollution.*",
+      "這個家族的陷阱很好笑：duck。*The duck is swimming in the pond.* 它和引導沒有關係。"
+     ],
+     "checks": [
+      {
+       "type": "mcq",
+       "q": "Riding a bike can reduce air pollution. 空氣污染會怎麼樣？",
+       "options": [
+        "變少",
+        "被帶進來",
+        "被製造出來"
+       ],
+       "answer": 0,
+       "explain": "re＋duce：往回帶，讓它變少。"
+      },
+      {
+       "type": "mcq",
+       "q": "education 的 e 是哪個字首的縮短版？",
+       "options": [
+        "re",
+        "ex",
+        "en"
+       ],
+       "answer": 1,
+       "explain": ""
+      }
+     ]
+    },
+    {
+     "id": "w9-s4",
+     "title": "ject：丟",
+     "minutes": 5,
+     "audio": "audio/w9-s4.mp3",
+     "slides": [
+      "sub ject、ob ject、pro ject、re ject",
+      "ject＝丟、拋",
+      "延伸：inject",
+      "陷阱字總整理：portion、portrait、miss、limit、duck"
+     ],
+     "script": [
+      "最後一個字根最短：ject，丟。你認得四個有它的字：subject、object、project、reject。",
+      "reject 最好懂：丟回去，不收下：*She rejected the offer.* project 是往前丟出去：projector 把畫面丟到前面的牆上；a project 是把想法丟向未來，再一步步做出來。",
+      "subject 和 object 是半透明的字。subject 字面是「丟到下面的東西」，object 是「丟在面前的東西」。但聽聽它們現在的用法：*Math is my favorite subject.* *There is a strange object in the sky.* 已經離字面有點遠了。這種字，拆開可以幫你記，但不能只靠拆來猜意思。",
+      "換你猜：in 是「進入」，inject 是什麼？〔停頓 3 秒〕把東西丟進去，送進身體裡：*The nurse injected the medicine into my arm.*",
+      "最後，把這個單元的陷阱字再看一次：portion、portrait、miss、limit、duck。它們都長得像，但都不是移動家族的成員。"
+     ],
+     "checks": [
+      {
+       "type": "mcq",
+       "q": "She rejected the offer. 她對那個提議做了什麼？",
+       "options": [
+        "把它打進去",
+        "丟回去，不收下",
+        "把它往前投出"
+       ],
+       "answer": 1,
+       "explain": ""
+      },
+      {
+       "type": "mcq",
+       "q": "subject 拆成 sub＋ject 之後，就能直接猜出「科目」的意思。",
+       "options": [
+        "對",
+        "錯"
+       ],
+       "answer": 1,
+       "explain": "subject 是半透明的字。"
+      }
+     ]
+    },
+    {
+     "id": "w9-s5",
+     "title": "單元任務",
+     "minutes": 3,
+     "audio": "audio/w9-s5.mp3",
+     "slides": [
+      "書 → App 採集 → 地圖",
+      "目標：至少 6 個字，四個家族都要有"
+     ],
+     "script": [
+      "這個單元的任務很簡單，但要你自己動手。",
+      "第一，打開你正在讀的書，找出含有 port、mit、duc、ject 的字。四個家族都要找到，至少 6 個字。找到後先別急著查字典。",
+      "第二，在 App 裡把字拆開，先寫下零件的意思，再用你自己的話說它在書裡那一句的意思。可以用英文換句話說，也可以描述句子裡發生了什麼事，不需要找一個中文詞來對譯。最後判斷它是透明、半透明，還是根本不能拆。",
+      "三個單元都完成以後，打開「地圖」和「詞性表」看看：這些字，全都是你自己從書裡找到的。"
+     ],
+     "checks": []
+    }
+   ]
+  }
+ ],
+ "morphemes": [
+  {
+   "id": "cmp",
+   "t": "cmp",
+   "forms": [],
+   "label": "複合字",
+   "mean": "兩個字拼成一個字",
+   "unit": 1,
+   "field": "W1 字首與複合字",
+   "anchors": [
+    "classroom",
+    "homework",
+    "birthday",
+    "bedroom",
+    "supermarket"
+   ],
+   "traps": [
+    "butterfly"
+   ]
+  },
+  {
+   "id": "un",
+   "t": "pre",
+   "forms": [
+    "un"
+   ],
+   "mean": "不、反轉",
+   "unit": 1,
+   "field": "W1 字首與複合字",
+   "anchors": [
+    "unhappy",
+    "unable",
+    "unkind",
+    "unfair",
+    "unusual"
+   ],
+   "traps": [
+    "uncle",
+    "uniform",
+    "until",
+    "understand"
+   ]
+  },
+  {
+   "id": "in",
+   "t": "pre",
+   "forms": [
+    "in",
+    "im",
+    "il",
+    "ir"
+   ],
+   "label": "in / im / il / ir",
+   "mean": "不",
+   "unit": 1,
+   "field": "W1 字首與複合字",
+   "anchors": [
+    "impolite",
+    "impossible",
+    "independent",
+    "incorrect"
+   ],
+   "traps": [
+    "important",
+    "insect",
+    "interest"
+   ]
+  },
+  {
+   "id": "dis",
+   "t": "pre",
+   "forms": [
+    "dis"
+   ],
+   "mean": "不、相反、分開",
+   "unit": 1,
+   "field": "W1 字首與複合字",
+   "anchors": [
+    "disappear",
+    "dishonest",
+    "discover"
+   ],
+   "traps": [
+    "discuss",
+    "distance"
+   ]
+  },
+  {
+   "id": "mis",
+   "t": "pre",
+   "forms": [
+    "mis"
+   ],
+   "mean": "錯誤",
+   "unit": 1,
+   "field": "W1 字首與複合字",
+   "anchors": [
+    "mistake"
+   ],
+   "traps": [
+    "miss",
+    "missile"
+   ]
+  },
+  {
+   "id": "non",
+   "t": "pre",
+   "forms": [
+    "non"
+   ],
+   "mean": "非、不是",
+   "unit": 1,
+   "field": "W1 字首與複合字",
+   "anchors": [],
+   "traps": []
+  },
+  {
+   "id": "tion",
+   "t": "suf",
+   "forms": [
+    "ation",
+    "ition",
+    "tion",
+    "sion",
+    "ion"
+   ],
+   "label": "-tion / -sion",
+   "mean": "名詞：動作、結果",
+   "pos": "n",
+   "unit": 4,
+   "field": "W4 名詞字尾",
+   "anchors": [
+    "action",
+    "decision",
+    "invitation",
+    "direction",
+    "discussion",
+    "pollution"
+   ],
+   "traps": [
+    "station",
+    "question",
+    "mansion"
+   ]
+  },
+  {
+   "id": "ment",
+   "t": "suf",
+   "forms": [
+    "ment"
+   ],
+   "mean": "名詞：動作、結果",
+   "pos": "n",
+   "unit": 4,
+   "field": "W4 名詞字尾",
+   "anchors": [
+    "movement"
+   ],
+   "traps": [
+    "comment",
+    "apartment",
+    "department"
+   ]
+  },
+  {
+   "id": "ness",
+   "t": "suf",
+   "forms": [
+    "ness"
+   ],
+   "mean": "名詞：狀態",
+   "pos": "n",
+   "unit": 4,
+   "field": "W4 名詞字尾",
+   "anchors": [
+    "happiness",
+    "kindness",
+    "darkness",
+    "weakness"
+   ],
+   "traps": [
+    "business"
+   ]
+  },
+  {
+   "id": "port",
+   "t": "root",
+   "forms": [
+    "port"
+   ],
+   "mean": "帶著東西移動",
+   "unit": 9,
+   "field": "W9 移動家族",
+   "anchors": [
+    "report",
+    "support",
+    "airport"
+   ],
+   "traps": [
+    "portion",
+    "portrait",
+    "important"
+   ]
+  },
+  {
+   "id": "mit",
+   "t": "root",
+   "forms": [
+    "miss",
+    "mise",
+    "mit",
+    "mis"
+   ],
+   "label": "mit / mis",
+   "mean": "送出",
+   "unit": 9,
+   "field": "W9 移動家族",
+   "anchors": [
+    "promise"
+   ],
+   "traps": [
+    "miss",
+    "limit",
+    "summit"
+   ]
+  },
+  {
+   "id": "duc",
+   "t": "root",
+   "forms": [
+    "duct",
+    "duce",
+    "duc"
+   ],
+   "label": "duc / duct",
+   "mean": "引導、帶領",
+   "unit": 9,
+   "field": "W9 移動家族",
+   "anchors": [
+    "introduce",
+    "produce",
+    "production",
+    "education"
+   ],
+   "traps": [
+    "duck"
+   ]
+  },
+  {
+   "id": "ject",
+   "t": "root",
+   "forms": [
+    "ject"
+   ],
+   "mean": "丟、拋",
+   "unit": 9,
+   "field": "W9 移動家族",
+   "anchors": [
+    "subject",
+    "object",
+    "project",
+    "reject"
+   ],
+   "traps": []
+  }
+ ],
+ "compounds": {
+  "classroom": "class+room",
+  "homework": "home+work",
+  "birthday": "birth+day",
+  "bedroom": "bed+room",
+  "airport": "air+port",
+  "supermarket": "super+market",
+  "postcard": "post+card",
+  "breakthrough": "break+through",
+  "outcome": "out+come",
+  "input": "in+put",
+  "overall": "over+all",
+  "playground": "play+ground",
+  "basketball": "basket+ball",
+  "football": "foot+ball",
+  "weekend": "week+end",
+  "sunflower": "sun+flower",
+  "raincoat": "rain+coat",
+  "bookstore": "book+store",
+  "toothbrush": "tooth+brush",
+  "notebook": "note+book",
+  "grandmother": "grand+mother",
+  "grandfather": "grand+father",
+  "someone": "some+one",
+  "everyone": "every+one",
+  "something": "some+thing",
+  "everything": "every+thing",
+  "sometimes": "some+times",
+  "afternoon": "after+noon",
+  "downtown": "down+town",
+  "upstairs": "up+stairs",
+  "sunlight": "sun+light",
+  "moonlight": "moon+light",
+  "waterfall": "water+fall",
+  "rainbow": "rain+bow",
+  "snowman": "snow+man",
+  "newspaper": "news+paper",
+  "seafood": "sea+food",
+  "hometown": "home+town",
+  "handwriting": "hand+writing",
+  "overcome": "over+come",
+  "outdoor": "out+door",
+  "underground": "under+ground",
+  "workshop": "work+shop",
+  "timeline": "time+line",
+  "framework": "frame+work"
+ },
+ "key": {
+  "unhappy": [
+   "un"
+  ],
+  "unable": [
+   "un"
+  ],
+  "unkind": [
+   "un"
+  ],
+  "unfair": [
+   "un"
+  ],
+  "unusual": [
+   "un"
+  ],
+  "unfamiliar": [
+   "un"
+  ],
+  "unexpected": [
+   "un"
+  ],
+  "unemployment": [
+   "un"
+  ],
+  "uncover": [
+   "un"
+  ],
+  "unlock": [
+   "un"
+  ],
+  "unfold": [
+   "un"
+  ],
+  "unveil": [
+   "un"
+  ],
+  "impolite": [
+   "in"
+  ],
+  "impossible": [
+   "in"
+  ],
+  "independent": [
+   "in"
+  ],
+  "incorrect": [
+   "in"
+  ],
+  "inaccurate": [
+   "in"
+  ],
+  "illegal": [
+   "in"
+  ],
+  "irregular": [
+   "in"
+  ],
+  "irresponsible": [
+   "in"
+  ],
+  "incredible": [
+   "in"
+  ],
+  "infinite": [
+   "in"
+  ],
+  "injustice": [
+   "in"
+  ],
+  "indispensable": [
+   "in"
+  ],
+  "disappear": [
+   "dis"
+  ],
+  "dishonest": [
+   "dis"
+  ],
+  "discover": [
+   "dis"
+  ],
+  "disagree": [
+   "dis"
+  ],
+  "dislike": [
+   "dis"
+  ],
+  "disadvantage": [
+   "dis"
+  ],
+  "disability": [
+   "dis"
+  ],
+  "discourage": [
+   "dis"
+  ],
+  "disappoint": [
+   "dis"
+  ],
+  "disapprove": [
+   "dis"
+  ],
+  "disconnect": [
+   "dis"
+  ],
+  "discomfort": [
+   "dis"
+  ],
+  "disbelief": [
+   "dis"
+  ],
+  "mistake": [
+   "mis"
+  ],
+  "misunderstand": [
+   "mis"
+  ],
+  "mislead": [
+   "mis"
+  ],
+  "misfortune": [
+   "mis"
+  ],
+  "nonsense": [
+   "non"
+  ],
+  "nonprofit": [
+   "non"
+  ],
+  "reproduce": [
+   "duc"
+  ],
+  "export": [
+   "port"
+  ],
+  "submit": [
+   "mit"
+  ],
+  "transport": [
+   "port"
+  ],
+  "transportation": [
+   "port"
+  ],
+  "transmit": [
+   "mit"
+  ],
+  "action": [
+   "tion"
+  ],
+  "decision": [
+   "tion"
+  ],
+  "invitation": [
+   "tion"
+  ],
+  "direction": [
+   "tion"
+  ],
+  "discussion": [
+   "tion"
+  ],
+  "pollution": [
+   "tion"
+  ],
+  "collection": [
+   "tion"
+  ],
+  "preparation": [
+   "tion"
+  ],
+  "expectation": [
+   "tion"
+  ],
+  "imagination": [
+   "tion"
+  ],
+  "protection": [
+   "tion"
+  ],
+  "invention": [
+   "tion"
+  ],
+  "investigation": [
+   "tion"
+  ],
+  "communication": [
+   "tion"
+  ],
+  "contribution": [
+   "tion"
+  ],
+  "distribution": [
+   "tion"
+  ],
+  "evaluation": [
+   "tion"
+  ],
+  "movement": [
+   "ment"
+  ],
+  "development": [
+   "ment"
+  ],
+  "improvement": [
+   "ment"
+  ],
+  "agreement": [
+   "ment"
+  ],
+  "enjoyment": [
+   "ment"
+  ],
+  "payment": [
+   "ment"
+  ],
+  "treatment": [
+   "ment"
+  ],
+  "achievement": [
+   "ment"
+  ],
+  "requirement": [
+   "ment"
+  ],
+  "establishment": [
+   "ment"
+  ],
+  "investment": [
+   "ment"
+  ],
+  "involvement": [
+   "ment"
+  ],
+  "commitment": [
+   "ment",
+   "mit"
+  ],
+  "assessment": [
+   "ment"
+  ],
+  "happiness": [
+   "ness"
+  ],
+  "kindness": [
+   "ness"
+  ],
+  "darkness": [
+   "ness"
+  ],
+  "weakness": [
+   "ness"
+  ],
+  "illness": [
+   "ness"
+  ],
+  "awareness": [
+   "ness"
+  ],
+  "consciousness": [
+   "ness"
+  ],
+  "effectiveness": [
+   "ness"
+  ],
+  "productive": [
+   "duc"
+  ],
+  "portable": [
+   "port"
+  ],
+  "airport": [
+   "port"
+  ],
+  "report": [
+   "port"
+  ],
+  "support": [
+   "port"
+  ],
+  "import": [
+   "port"
+  ],
+  "porter": [
+   "port"
+  ],
+  "portfolio": [
+   "port"
+  ],
+  "promise": [
+   "mit"
+  ],
+  "admit": [
+   "mit"
+  ],
+  "permit": [
+   "mit"
+  ],
+  "permission": [
+   "mit"
+  ],
+  "mission": [
+   "mit"
+  ],
+  "commit": [
+   "mit"
+  ],
+  "admission": [
+   "mit"
+  ],
+  "dismiss": [
+   "mit"
+  ],
+  "emission": [
+   "mit"
+  ],
+  "introduce": [
+   "duc"
+  ],
+  "produce": [
+   "duc"
+  ],
+  "production": [
+   "duc"
+  ],
+  "education": [
+   "duc"
+  ],
+  "reduce": [
+   "duc"
+  ],
+  "reduction": [
+   "duc"
+  ],
+  "product": [
+   "duc"
+  ],
+  "conduct": [
+   "duc"
+  ],
+  "conductor": [
+   "duc"
+  ],
+  "induce": [
+   "duc"
+  ],
+  "deduct": [
+   "duc"
+  ],
+  "subject": [
+   "ject"
+  ],
+  "object": [
+   "ject"
+  ],
+  "project": [
+   "ject"
+  ],
+  "reject": [
+   "ject"
+  ],
+  "inject": [
+   "ject"
+  ],
+  "injection": [
+   "ject"
+  ],
+  "objection": [
+   "ject"
+  ],
+  "objective": [
+   "ject"
+  ],
+  "rejection": [
+   "ject"
+  ],
+  "projection": [
+   "ject"
+  ],
+  "subjective": [
+   "ject"
+  ]
+ },
+ "traps": {
+  "uncle": [
+   "un"
+  ],
+  "uniform": [
+   "un"
+  ],
+  "until": [
+   "un"
+  ],
+  "understand": [
+   "un"
+  ],
+  "important": [
+   "in",
+   "port"
+  ],
+  "insect": [
+   "in"
+  ],
+  "interest": [
+   "in"
+  ],
+  "invaluable": [
+   "in"
+  ],
+  "discuss": [
+   "dis"
+  ],
+  "distance": [
+   "dis"
+  ],
+  "distant": [
+   "dis"
+  ],
+  "miss": [
+   "mis",
+   "mit"
+  ],
+  "missile": [
+   "mis"
+  ],
+  "station": [
+   "tion"
+  ],
+  "mansion": [
+   "tion"
+  ],
+  "question": [
+   "tion"
+  ],
+  "comment": [
+   "ment"
+  ],
+  "apartment": [
+   "ment"
+  ],
+  "department": [
+   "ment"
+  ],
+  "business": [
+   "ness"
+  ],
+  "portion": [
+   "port"
+  ],
+  "portrait": [
+   "port"
+  ],
+  "limit": [
+   "mit"
+  ],
+  "summit": [
+   "mit"
+  ],
+  "vomit": [
+   "mit"
+  ],
+  "imitate": [
+   "mit"
+  ],
+  "duck": [
+   "duc"
+  ],
+  "butterfly": [
+   "cmp"
+  ]
+ }
+}

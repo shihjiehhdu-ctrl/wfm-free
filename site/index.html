@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>我的詞族地圖</title>
+<meta name="description" content="我的詞族地圖・免費版：從自己的閱讀裡找字、拆字、確認，建立自己的詞族地圖。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<!-- 登入 -->
+<div class="gate" id="gate" hidden>
+  <form class="panel gate-card" id="gateForm" novalidate>
+    <div class="app-name dark">我的詞族地圖<small>myWordFamilymap · 免費版</small></div>
+    <p class="sub" style="margin-top:14px">輸入信裡收到的 token，就能開始使用。你的紀錄會自動備份，換一台電腦或平板也看得到。</p>
+    <div class="field">
+      <label for="gToken">Token</label>
+      <input class="in word" id="gToken" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12" placeholder="例如 K7M2QX">
+    </div>
+    <div class="actions">
+      <button class="btn btn-primary" type="submit" id="gBtn">開始</button>
+      <a class="btn btn-quiet" id="gApply" href="apply.html">還沒有 token？申請</a>
+    </div>
+    <p class="err" id="gErr" role="alert"></p>
+    <p class="proto-note" id="gDemo" hidden>預覽模式：尚未設定後端，資料只存在這台裝置。可輸入 <b class="mono">DEMO01</b> 試用。</p>
+  </form>
+</div>
+
+<div id="app" hidden>
+<header class="top">
+  <div class="wrap gutter">
+    <div class="app-name">我的詞族地圖<small>myWordFamilymap · 免費版</small></div>
+    <div class="spacer"></div>
+    <div class="unitpick" id="unitPick" role="group" aria-label="單元"></div>
+    <span class="count-pill" id="countPill"></span>
+    <span class="sync" id="syncPill" aria-live="polite"></span>
+    <button class="ghost-btn" id="acctBtn" type="button"></button>
+  </div>
+  <div class="wrap gutter">
+    <nav class="tabs" role="tablist" aria-label="功能">
+      <button class="tab" role="tab" id="tab-lesson" aria-controls="v-lesson" aria-selected="true" type="button">課程</button>
+      <button class="tab" role="tab" id="tab-capture" aria-controls="v-capture" aria-selected="false" type="button">採集</button>
+      <button class="tab" role="tab" id="tab-map" aria-controls="v-map" aria-selected="false" type="button">地圖</button>
+      <button class="tab" role="tab" id="tab-wc" aria-controls="v-wc" aria-selected="false" type="button">詞性表</button>
+      <button class="tab" role="tab" id="tab-review" aria-controls="v-review" aria-selected="false" type="button">複習</button>
+    </nav>
+  </div>
+</header>
+<div class="banner warn" id="storeWarn" hidden>
+  <div class="wrap gutter">這個瀏覽器無法在本機保存資料（可能是私密視窗）。紀錄仍會備份到雲端，但離線時新增的字可能會遺失。</div>
+</div>
+
+<main>
+<div class="wrap gutter">
+
+<!-- 課程 -->
+<section class="view" id="v-lesson" role="tabpanel" aria-labelledby="tab-lesson">
+  <div class="lessongrid">
+    <nav class="panel segnav" id="segNav" aria-label="段落"></nav>
+    <article class="panel" id="segPanel"></article>
+  </div>
+</section>
+
+<!-- 採集 -->
+<section class="view" id="v-capture" role="tabpanel" aria-labelledby="tab-capture" hidden>
+  <div class="grid">
+    <form class="panel" id="capForm" novalidate>
+      <span class="eyebrow">ER 採集</span>
+      <h2>在書裡遇到一個字，把它拆開</h2>
+      <p class="sub">輸入單字，選一個拆法（或自己用 + 拆），抄下原句，寫下零件的意思，再用自己的話說它在原句裡的意思。</p>
+
+      <div class="field">
+        <label for="f-word">單字</label>
+        <input class="in word" id="f-word" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="transportation">
+      </div>
+      <div class="field">
+        <span class="lbl">建議拆法</span>
+        <div class="sugs" id="sugs"><span class="hint">輸入單字後，這裡會出現可用的拆法。</span></div>
+      </div>
+      <div class="field">
+        <label for="f-split">我的拆法 <span class="hint">（用 + 分開，例如 ex+port；不能拆就留整個字）</span></label>
+        <input class="in split" id="f-split" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="ex+port">
+        <div class="parts" id="partsPreview" aria-live="polite"><span class="empty">拆好的零件會顯示在這裡</span></div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="f-pos">詞性</label>
+          <select class="in" id="f-pos">
+            <option value="n">名詞 n.</option><option value="v">動詞 v.</option><option value="adj">形容詞 adj.</option><option value="adv">副詞 adv.</option><option value="other">其他</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="f-family">歸入詞族</label>
+          <input class="in mono" id="f-family" autocomplete="off" spellcheck="false" placeholder="port 或 develop">
+          <span class="hint">詞性表用它把同一家族的字排在一起。</span>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="f-book">出處（書名）</label>
+          <input class="in" id="f-book" autocomplete="off" placeholder="正在讀的書">
+        </div>
+        <div class="field">
+          <span class="lbl" id="clarityLbl">透明度</span>
+          <div class="seg" id="clarity" role="group" aria-labelledby="clarityLbl">
+            <button type="button" data-v="透明" aria-pressed="true">透明</button>
+            <button type="button" data-v="半透明" aria-pressed="false">半透明</button>
+            <button type="button" data-v="不能拆" aria-pressed="false">不能拆</button>
+          </div>
+          <span class="hint">透明：拆了就懂；半透明：要想一下；不能拆：陷阱字。</span>
+        </div>
+      </div>
+      <div class="field">
+        <label for="f-sentence">原句</label>
+        <textarea class="in" id="f-sentence" placeholder="把書裡的那一句抄下來"></textarea>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="f-gloss">零件的意思</label>
+          <input class="in" id="f-gloss" autocomplete="off" placeholder="向外＋搬運">
+          <span class="hint">用中文寫零件沒問題。</span>
+        </div>
+        <div class="field">
+          <label for="f-meaning">在這句話裡的意思</label>
+          <input class="in" id="f-meaning" autocomplete="off" placeholder="to send things out of the country">
+          <span class="hint">用英文換句話說，或說說句子裡發生了什麼。不用翻成一個中文詞。</span>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-primary" id="saveBtn" type="submit">加入地圖</button>
+        <button class="btn btn-quiet" id="resetBtn" type="button">清空</button>
+        <span class="err" id="formErr" role="alert"></span>
+      </div>
+      <div id="checkBox" aria-live="polite"></div>
+    </form>
+
+    <div class="side-gap">
+      <div class="panel">
+        <span class="eyebrow" id="unitEyebrow"></span>
+        <h2 id="unitTitle"></h2>
+        <p class="sub" id="unitTask"></p>
+        <div class="mlist" id="unitMorphs"></div>
+      </div>
+      <div class="panel">
+        <span class="eyebrow">最近收集</span>
+        <h2>你的字和它們的確認狀態</h2>
+        <p class="sub">「詞表確認」表示拆法和課程詞表一致；「待確認」是詞表外的字，拆法先保留在地圖上。</p>
+        <ul class="recent" id="recent"></ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 地圖 -->
+<section class="view" id="v-map" role="tabpanel" aria-labelledby="tab-map" hidden>
+  <div class="mapgrid">
+    <nav class="panel mnav" id="mnav" aria-label="詞素"></nav>
+    <div class="panel" id="mapPanel"></div>
+  </div>
+</section>
+
+<!-- 詞性表 -->
+<section class="view" id="v-wc" role="tabpanel" aria-labelledby="tab-wc" hidden>
+  <div class="panel" id="wcPanel"></div>
+</section>
+
+<!-- 複習 -->
+<section class="view" id="v-review" role="tabpanel" aria-labelledby="tab-review" hidden>
+  <div class="panel" id="reviewPanel"></div>
+</section>
+
+</div>
+</main>
+</div>
+
+<div class="sheet" id="acctSheet" hidden>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="acctTitle">
+    <span class="eyebrow">帳號</span>
+    <h2 id="acctTitle"></h2>
+    <p class="sub" id="acctInfo"></p>
+    <div class="kv" id="acctKv"></div>
+    <div class="actions" style="margin-top:16px">
+      <button class="btn btn-quiet" type="button" id="syncNow">立即同步</button>
+      <button class="btn btn-quiet" type="button" id="logout">登出這台裝置</button>
+      <span class="err" id="acctErr" role="alert"></span>
+    </div>
+    <div class="actions" style="margin-top:16px;justify-content:flex-end">
+      <button class="btn btn-quiet" type="button" id="acctClose">關閉</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script src="config.js"></script>
+<script src="api.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

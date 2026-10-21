@@ -1,0 +1,5 @@
+最後想一個問題：既然有 develop，為什麼還需要 development？
+
+比比看這兩句。The town developed quickly. 這是在說一件事。The quick development of the town surprised everyone. 這裡，development 變成一個東西，可以被形容，也可以當主詞，後面再接新的訊息。
+
+把動作打包成名詞，一個句子就能裝進更多訊息。這是學術文章最常用的技巧之一。現在你只要先開始注意：書裡的 tion、ment、ness，常常就是一個被打包起來的動作或狀態。

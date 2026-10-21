@@ -1,0 +1,6 @@
+<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="zh-TW">
+  <p>先看幾個你早就會的字：classroom、homework、birthday。<break time="2s"/>每一個都是兩個字黏在一起。class 加 room，就是上課的房間：<lang xml:lang="en-US">Our classroom is on the second floor.</lang></p>
+  <p>像 class、room 這樣帶著意思、可以和別的零件拼在一起的單位，叫做詞素：一個字裡面，帶有意思的最小零件。兩個完整的字拼成一個字，叫複合字。</p>
+  <p>複合字在學術文章裡也很常見。換你猜：out 加 come，outcome 是什麼？<break time="3s"/>事情最後「出來」的樣子：<lang xml:lang="en-US">Nobody could predict the outcome of the game.</lang> 那 input 呢？<break time="3s"/>放進來的想法或東西：<lang xml:lang="en-US">The teacher asked for our input on the class trip.</lang></p>
+  <p>但不是每個看起來拼得起來的字都能這樣拆。butterfly 裡有 butter，也有 fly，可是牠跟奶油沒有關係：<lang xml:lang="en-US">A butterfly landed on my hand.</lang> 這種字叫陷阱字：長得像，意思卻接不起來。</p>
+</speak>

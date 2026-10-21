@@ -1,0 +1,5 @@
+W1 的字首，會改變一個字的方向。這個單元要看字尾。字尾通常不改變意思的核心，卻會改變一個字在句子裡的「工作」，也就是詞性。
+
+decide 是動詞，decision 是名詞。同一個意思，換一個字尾，就能放到句子裡不同的位置：We decided to stay. Staying was a hard decision.
+
+這個單元看三個名詞字尾：tion、ment、ness。它們把一個動作或一種狀態，打包成一個「東西」。

@@ -45,17 +45,19 @@ def tf(q, answer, explain=''):
 def open_q(q, ref):
     return {'type':'open','q':q,'ref':ref}
 
-def seg(sid, title, minutes, slides, script, checks=()):
-    return {'id':sid,'title':title,'minutes':minutes,'audio':f'audio/{sid}.mp3','slides':slides,'script':script,'checks':list(checks)}
+def seg(sid, title, minutes, slides, script, checks=(), passage=None):
+    d = {'id':sid,'title':title,'minutes':minutes,'audio':f'audio/{sid}.mp3','slides':slides,'script':script,'checks':list(checks)}
+    if passage: d['passage'] = passage
+    return d
 
 W1 = {'unit':1,'stage':'拆','title':'字是拼起來的：複合字與否定字首','morphemes':['cmp','un','in','dis','mis','non'],
  'task':'在書裡找出至少 6 個帶 un、in（im、il、ir）、dis、mis 或 non 的字，再加上 2 個複合字。陷阱字也算數。',
  'segments':[
   seg('w1-s0','開場',3,
-   ['W1 字是拼起來的','三件事：認出零件、推出意思、想起家族','三個單元：W1 字首、W4 字尾、W9 字根'],
+   ['W1 字是拼起來的','三件事：認出零件、推出意思、想起家族','四個單元：W1 字首、W4 字尾、W9 字根、W13 用出來'],
    ['歡迎來到「我的詞族地圖」。你已經讀了很多英文書，很多字不用翻譯就懂。這個單元要帶你換一個角度看字：很多英文字，是用零件拼起來的。',
     '學會看零件，你可以做三件事。第一，認出一個長字裡有哪些零件。第二，用零件加上句子，推出它的意思。第三，看到同一個零件，就想起它的一整個家族。',
-    '免費版有三個單元：W1 看字首，W4 看字尾，W9 看字根，剛好是一個字的頭、尾和中間。每個單元都一樣：先聽講解，再到你正在讀的書裡找字，把它記到地圖上。〔停頓 1 秒〕我不會給你一張單字表。你找到、你拆開、你確認過的字，才會真的變成你的字。']),
+    '免費版有四個單元：W1 看字首，W4 看字尾，W9 看字根，剛好是一個字的頭、尾和中間；最後的 W13，把三種零件用在學科文章裡。每個單元都一樣：先聽講解，再到你正在讀的書裡找字，把它記到地圖上。〔停頓 1 秒〕我不會給你一張單字表。你找到、你拆開、你確認過的字，才會真的變成你的字。']),
   seg('w1-s1','詞素：字的最小零件',5,
    ['class + room、home + work、birth + day','詞素：一個字裡帶有意思的最小零件','延伸：outcome、input','陷阱字：butterfly'],
    ['先看幾個你早就會的字：classroom、homework、birthday。〔停頓 2 秒〕每一個都是兩個字黏在一起。class 加 room，就是上課的房間：*Our classroom is on the second floor.*',
@@ -195,11 +197,69 @@ W9 = {'unit':9,'stage':'根','title':'字根：移動家族','morphemes':['port'
    ['這個單元的任務很簡單，但要你自己動手。',
     '第一，打開你正在讀的書，找出含有 port、mit、duc、ject 的字。四個家族都要找到，至少 6 個字。找到後先別急著查字典。',
     '第二，在 App 裡把字拆開，先寫下零件的意思，再用你自己的話說它在書裡那一句的意思。可以用英文換句話說，也可以描述句子裡發生了什麼事，不需要找一個中文詞來對譯。最後判斷它是透明、半透明，還是根本不能拆。',
-    '三個單元都完成以後，打開「地圖」和「詞性表」看看：這些字，全都是你自己從書裡找到的。'])
+    '完成以後，打開「地圖」和「詞性表」看看：這些字，全都是你自己從書裡找到的。下一個單元 W13，我們要把三種零件一起用在學科文章裡。'])
  ]}
 
-pack = {'pack':'free','version':'2026.10.1','title':'我的詞族地圖・免費版',
-        'units':[W1, W4, W9], 'morphemes':MORPHEMES, 'compounds':COMPOUNDS,
+
+PASSAGE = [
+  'Fifty years ago, the air in our city was dirty. Factories {{produced|produce}} smoke all day, and the {{pollution|pollution}} made many people ill.',
+  'The city government made a {{decision|decision}}: it would {{reduce|reduce}} the number of old buses and make a large {{investment|investment}} in clean {{transportation|transportation}}.',
+  'At first, many people {{disagreed|disagree}}. They thought the plan was {{impossible|impossible}} and the cost was {{unreasonable|unreasonable}}.',
+  'But the {{improvement|improvement}} was {{unexpected|unexpected}}. Within ten years, the smoke had almost {{disappeared|disappear}}, and the city now {{exports|export}} electric buses to other countries.',
+  'Its story shows that the {{development|development}} of a city depends on the {{awareness|awareness}} of its people.'
+]
+plain = lambda t: __import__('re').sub(r'\{\{(.+?)\|.+?\}\}', r'\1', t)
+
+W13 = {'unit':13,'stage':'用','title':'用：在學科文本裡拆字','morphemes':['un','in','dis','tion','ment','ness','port','duc'],
+ 'task':'找一本自然或社會的課本，或一本知識性的書，找出至少 4 個「零件來自兩個以上單元」的字；再把書裡的一個句子，用名詞字尾改寫成「打包」的版本。',
+ 'segments':[
+  seg('w13-s0','開場',2,
+   ['W1 字首＋W4 字尾＋W9 字根','學科文本裡的長字，常常是三種零件疊在一起','這個單元：讀一段短文，把零件用出來'],
+   ['前面三個單元，你分別學了字首、字尾和字根。這個單元不學新零件，而是把它們用出來。',
+    '在自然和社會的文章裡，長字特別多。它們看起來很嚇人，其實常常只是字首、字根、字尾疊在一起。你已經有足夠的零件，可以拆開它們了。']),
+  seg('w13-s1','由外往內拆',6,
+   ['步驟一：先找字尾 → 知道詞性','步驟二：再找字首 → 知道方向','步驟三：剩下的就是核心','步驟四：回到句子裡確認','示範：unexpected、transportation、reduction'],
+   ['遇到一個很長的字，不要從第一個字母開始猜。試試看「由外往內拆」。',
+    '第一步，先看字尾。字尾告訴你這個字在句子裡做什麼工作：tion、ment、ness 結尾，通常是名詞。第二步，看字首。字首告訴你方向：un、in、dis 是「不、相反」，ex 是「向外」。第三步，剩下的部分就是核心。第四步，回到句子裡確認。',
+    '來試一個：unexpected。〔停頓 2 秒〕最外面是 un，「不」。裡面是 expected，「預期的」。所以 unexpected 是沒有預期到的：*The improvement was unexpected.* 大家都沒想到會變好這麼快。',
+    '再試一個長的：transportation。〔停頓 3 秒〕字尾是 ation，所以它是名詞。中間是 port，帶著東西移動。最前面的 trans 這三個單元沒教過，它的意思是「跨越」；就算不知道，你也能從 port 和句子猜到它和運送有關：*The city made a large investment in clean transportation.*',
+    '最後一個：reduction。字尾 tion，是名詞；核心是 duc，帶領；前面的 re 是「回」。往回帶，讓它變少，再打包成名詞，就是「變少這件事」：*The reduction of smoke made the air clean again.*'],
+   [mcq('拆一個很長的字時，這個單元建議先看哪裡？',['第一個字母','字尾','字典'],1,'先看字尾，知道它的詞性。'),
+    mcq('The improvement was unexpected. 這句話在說什麼？',['大家沒想到會變好','大家早就知道會變好','事情沒有變好'],0,'un＋expected：沒有預期到的。')]),
+  seg('w13-s2','讀一段短文',7,
+   ['短文：A City Without Smoke','先聽一次，再看畫底線的字','點一下畫底線的字，把它帶到「採集」'],
+   ['現在我們來讀一段社會科的短文。先聽一次，不用停下來查字。',
+    *['*' + plain(x) + '*' for x in PASSAGE],
+    '〔停頓 2 秒〕這段短文裡，畫底線的字都可以用你學過的零件拆開。我們一起看三個。',
+    'disagreed：dis 是「相反」，agree 是同意，所以是不同意。*At first, many people disagreed.* 一開始，很多人反對這個計畫。',
+    'unreasonable：最外面是 un，裡面是 reasonable，「合理的」。*They thought the cost was unreasonable.* 他們覺得花這麼多錢不合理。',
+    'awareness：aware 加 ness，把「注意到、知道」這種狀態打包成名詞。*The development of a city depends on the awareness of its people.* 城市能不能進步，要看大家有沒有意識到問題。',
+    '剩下的字，換你自己拆。點一下畫底線的字，它會被帶到「採集」，原句也會一起帶過去。'],
+   [mcq('At first, many people disagreed. 一開始大家對這個計畫的態度是？',['反對','支持','不知道'],0,'dis＋agree：不同意。'),
+    mcq('短文裡哪一個字「沒有」名詞字尾？',['pollution','investment','unexpected'],2,'unexpected 是形容詞：un＋expected。'),
+    open_q('Within ten years, the smoke had almost disappeared. 十年後，城市的天空發生了什麼事？用自己的話說說看。','The smoke was almost gone; the sky became clear.')],
+   passage=PASSAGE),
+  seg('w13-s3','打包：從句子到名詞',6,
+   ['The government decided. → the government\'s decision','Smoke was reduced. → the reduction of smoke','People became aware. → people\'s awareness','打包以後，名詞可以當主詞，句子能裝更多訊息'],
+   ['W4 說過，名詞字尾可以把一個動作打包成一個東西。這是學術文章最常見的寫法。現在，我們用短文裡的字練習。',
+    '先看一句：*The government decided to buy clean buses.* 把 decided 打包成名詞，就變成 *The government\'s decision to buy clean buses changed the city.* decision 變成了主詞，後面還可以再說它帶來什麼結果。',
+    '再一句：*The smoke was reduced.* 打包以後：*The reduction of smoke surprised everyone.*',
+    '換你試試：*People became aware of the problem.* 〔停頓 5 秒〕你可以寫成：*People\'s awareness of the problem grew.* 或是 *Awareness of the problem helped the city change.*',
+    '打包以後的句子不一定比較好讀，但它比較「學術」，因為它把事情變成可以討論、可以比較的東西。之後在學術讀寫課，你會一直用到這個技巧。'],
+   [mcq('The smoke was reduced. 打包成名詞以後是哪一個？',['the reduce of smoke','the reduction of smoke','the reducement of smoke'],1,'reduce 的名詞是 reduction。'),
+    open_q('把這一句打包成名詞：The city improved quickly.','The quick improvement of the city … （例如：The quick improvement of the city surprised everyone.）')]),
+  seg('w13-s4','單元任務',3,
+   ['課本或知識書 → 找 4 個「多零件」的字','改寫一個句子：動詞 → 名詞'],
+   ['這個單元的任務有兩部分。',
+    '第一，拿出一本自然或社會的課本，或一本知識性的英文書，找出至少 4 個字，它們的零件來自兩個以上的單元，像 unexpected、transportation、disappointment。在 App 裡由外往內拆開，記下原句。',
+    '第二，從書裡挑一個句子，用 tion、ment 或 ness 把其中的動作打包成名詞，寫在那個字的「在這句話裡的意思」欄位。',
+    '做完以後，打開「地圖」看看：同一個字，可能同時出現在好幾個家族裡。這就是零件的力量。'])
+ ]}
+key['key']['unreasonable'] = ['un']
+key['key']['disappointment'] = ['dis', 'ment']
+
+pack = {'pack':'free','version':'2026.10.2','title':'我的詞族地圖・免費版',
+        'units':[W1, W4, W9, W13], 'morphemes':MORPHEMES, 'compounds':COMPOUNDS,
         'key':key['key'], 'traps':key['traps']}
 out = ROOT / 'site' / 'content' / 'free.json'
 out.write_text(json.dumps(pack, ensure_ascii=False, indent=1), encoding='utf-8')

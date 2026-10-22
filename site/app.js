@@ -249,6 +249,8 @@ function renderLesson(){
   renderSegment();
 }
 $('#segNav').addEventListener('click', e => { const b = e.target.closest('[data-s]'); if (!b) return; ui.seg = b.dataset.s; renderLesson(); window.scrollTo({top:0}); });
+const passageHTML = ps => `<div class="passage" lang="en">${ps.map((t, i) => `<p>${esc(t).replace(/\{\{(.+?)\|(.+?)\}\}/g, (m, w, lemma) => `<button type="button" class="pw" data-w="${lemma}" data-p="${i}">${w}</button>`)}</p>`).join('')}</div>`;
+const plainPassage = t => t.replace(/\{\{(.+?)\|.+?\}\}/g, '$1');
 const scriptHTML = p => esc(p).replace(/\*(.+?)\*/g, '<em lang="en">$1</em>').replace(/〔停頓 (\d+) 秒〕/g, '<span class="pause">〔停頓 $1 秒〕</span>');
 function renderSegment(){
   const u = unitOf(state.unit), i = u.segments.findIndex(s => s.id === ui.seg), s = u.segments[i];
@@ -264,6 +266,7 @@ function renderSegment(){
         <span>正式語音檔準備中，先用瀏覽器內建的聲音朗讀。</span>
       </div>
     </div>
+    ${s.passage ? `<span class="eyebrow" style="display:block;margin-top:16px">短文 · 點一下畫底線的字，把它帶到「採集」</span>${passageHTML(s.passage)}` : ''}
     <ul class="slides" aria-label="畫面重點">${s.slides.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
     <details class="script" id="scriptBox"><summary>講解文字</summary>${s.script.map(p => `<p>${scriptHTML(p)}</p>`).join('')}</details>
     ${s.checks.length ? `<div class="checks"><h3>段後檢核</h3>${s.checks.map((c, k) => checkHTML(c, k, answers[k])).join('')}</div>` : ''}
@@ -297,6 +300,17 @@ $('#segPanel').addEventListener('click', e => {
   if (e.target.id === 'doneBtn') {
     setSeg(s.id, {done:true}); renderLesson(); toast('這一段完成了');
     if (u.segments.every(segDone)) toast(`W${u.unit} 全部完成！到「採集」記下你在書裡找到的字`);
+    return;
+  }
+  const pw = e.target.closest('.pw');
+  if (pw) {
+    const sentence = plainPassage(s.passage[+pw.dataset.p]).split(/(?<=[.!?:])\s+/).find(x => x.toLowerCase().includes(pw.textContent.toLowerCase())) || plainPassage(s.passage[+pw.dataset.p]);
+    resetForm();
+    fWord.value = pw.dataset.w; fSplit.value = pw.dataset.w; fSplit.dataset.auto = '1';
+    $('#f-sentence').value = sentence.trim(); $('#f-book').value = '示範短文：A City Without Smoke';
+    ui.tab = 'capture'; renderTabs(); renderView(); refreshSugs(); refreshParts();
+    window.scrollTo({top:0}); fSplit.focus();
+    toast(`${pw.dataset.w} 已帶到採集，選一個拆法吧`);
     return;
   }
   const opt = e.target.closest('[data-o]');

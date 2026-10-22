@@ -1,0 +1,7 @@
+<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="zh-TW">
+  <p>遇到一個很長的字，不要從第一個字母開始猜。試試看「由外往內拆」。</p>
+  <p>第一步，先看字尾。字尾告訴你這個字在句子裡做什麼工作：tion、ment、ness 結尾，通常是名詞。第二步，看字首。字首告訴你方向：un、in、dis 是「不、相反」，ex 是「向外」。第三步，剩下的部分就是核心。第四步，回到句子裡確認。</p>
+  <p>來試一個：unexpected。<break time="2s"/>最外面是 un，「不」。裡面是 expected，「預期的」。所以 unexpected 是沒有預期到的：<lang xml:lang="en-US">The improvement was unexpected.</lang> 大家都沒想到會變好這麼快。</p>
+  <p>再試一個長的：transportation。<break time="3s"/>字尾是 ation，所以它是名詞。中間是 port，帶著東西移動。最前面的 trans 這三個單元沒教過，它的意思是「跨越」；就算不知道，你也能從 port 和句子猜到它和運送有關：<lang xml:lang="en-US">The city made a large investment in clean transportation.</lang></p>
+  <p>最後一個：reduction。字尾 tion，是名詞；核心是 duc，帶領；前面的 re 是「回」。往回帶，讓它變少，再打包成名詞，就是「變少這件事」：<lang xml:lang="en-US">The reduction of smoke made the air clean again.</lang></p>
+</speak>

@@ -9,11 +9,11 @@ site/            ← 整個資料夾拖進 Netlify
   config.js      設定：API_URL
   api.js         後端呼叫（API_URL 留空＝預覽模式）
   app.js, app.css
-  content/free.json   內容包：W1、W4、W9 的講解、檢核、詞素、詞表
+  content/free.json   內容包：W1、W4、W9、W13 的講解、檢核、短文、詞素、詞表
   audio/         放 TTS 產生的 mp3（檔名見 tts/00-檔名清單.tsv）
   netlify.toml
 backend/Code.gs  Apps Script 後端
-tts/             18 段語音稿：.txt（純文字）與 .ssml（含停頓與英文語音標記）
+tts/             23 段語音稿：.txt（純文字）與 .ssml（含停頓與英文語音標記）
 build/           內容包的原始檔（content_free.py、key.json）
 ```
 
@@ -48,7 +48,7 @@ build/           內容包的原始檔（content_free.py、key.json）
 
 ## 三、語音檔（TTS）
 
-- `tts/` 裡有 18 段語音稿，每段一個 `.txt` 和一個 `.ssml`。
+- `tts/` 裡有 23 段語音稿，每段一個 `.txt` 和一個 `.ssml`。
   - `.txt`：純文字，〔停頓 N 秒〕保留在文字中，可以依你的 TTS 工具手動處理。
   - `.ssml`：停頓已轉成 `<break time="Ns"/>`，英文例句包在 `<lang xml:lang="en-US">` 裡，支援 SSML 的工具（Azure、Google Cloud TTS 等）可以直接用。
 - 產生的 mp3 依清單命名（例如 `w1-s1.mp3`），放進 `site/audio/`，重新部署即可。

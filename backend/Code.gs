@@ -101,7 +101,7 @@ function sendToken_(email, parent, child, token) {
     '<p style="font-size:15px"><b>登入連結：</b><a href="' + link + '">' + link + '</a><br>',
     '<b>Token：</b><span style="font-family:monospace;font-size:18px;letter-spacing:2px">' + token + '</span></p>',
     '<p>請讓孩子用筆電或平板打開連結。換裝置時，打開 ' + APP_URL + ' 再輸入 token 即可，紀錄會自動備份。</p>',
-    '<p>免費版包含 W1（字首與複合字）、W4（名詞字尾）、W9（字根：移動家族）三個單元。建議每個單元先聽完講解，再到正在讀的書裡找字。</p>',
+    '<p>免費版包含 W1（字首與複合字）、W4（名詞字尾）、W9（字根：移動家族）、W13（在學科文本裡拆字）四個單元。建議每個單元先聽完講解，再到正在讀的書裡找字。</p>',
     '<p style="color:#5C7077">大腦裡的英語工程　english-brain.tw<br>LINE 官方帳號：https://lin.ee/HCmnCgn</p>',
     '</div>'
   ].join('');

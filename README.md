@@ -54,6 +54,24 @@ build/           內容包的原始檔（content_free.py、key.json）
 - 產生的 mp3 依清單命名（例如 `w1-s1.mp3`），放進 `site/audio/`，重新部署即可。
 - 還沒有 mp3 的段落，App 會自動改用瀏覽器內建語音朗讀（中文用 zh-TW，英文例句用 en-US），學生也可以展開「講解文字」自己讀。
 
+### 用 OpenAI TTS 自動產生
+
+`tools/make_audio.py` 會直接讀 `site/content/free.json`，產生所有段落的 mp3，放進 `site/audio/`。
+
+```
+pip install openai lameenc
+export OPENAI_API_KEY=sk-...          # Windows：set OPENAI_API_KEY=sk-...
+python3 tools/make_audio.py --only w1-s1   # 先做一段試聽，滿意再全部產生
+python3 tools/make_audio.py                # 產生所有還沒有的音檔
+```
+
+- 〔停頓 N 秒〕會變成真正的靜音，段落之間也會留 0.6 秒。
+- 已經有的音檔會略過；修改講解稿後，用 `--only w4-s2 --force` 重做那一段。
+- 換聲音：`--voice cedar`（預設 marin）；調語速：`--speed 0.95`。
+- 英文例句聽起來不夠清楚時，加上 `--split-english`：英文句子會分開產生，用另一組英文朗讀指示。
+- `--dry-run` 只顯示會送出的文字，不花費 API 額度；`--list` 看哪些段落已經有音檔。
+- API key 只放在你自己電腦的環境變數，不要寫進程式或 commit 到 GitHub。
+
 ## 四、內容修改
 
 講解稿、檢核題、詞素和詞表都在 `build/content_free.py`。修改後執行：

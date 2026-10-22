@@ -5,5 +5,7 @@
 window.WFM_CONFIG = {
   API_URL: 'https://script.google.com/macros/s/AKfycbz9pP0pI85ZdBp0F1-mh3iETzMYjJwHucQPySCPVGKiGgFWmwNtUxd9X0Mtbjj63JNuIg/exec',
   APPLY_URL: 'apply.html',
+  COURSE_URL: 'https://english-brain.tw/morphology-lp/',   // 課程介紹頁（班級牆「了解課程版」按鈕連到這裡）
+  FEATURES: { wall: false, ask: false },     // 課程版／付費版開放時改成 true
   CONTENT_URL: 'content/free.json'
 };

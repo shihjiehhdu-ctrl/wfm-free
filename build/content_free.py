@@ -15,7 +15,7 @@ MORPHEMES = [
   {'id':'cmp','t':'cmp','forms':[],'label':'複合字','mean':'兩個字拼成一個字','unit':1,'field':'W1 字首與複合字',
    'anchors':['classroom','homework','birthday','bedroom','supermarket'],'traps':['butterfly']},
   {'id':'un','t':'pre','forms':['un'],'mean':'不、反轉','unit':1,'field':'W1 字首與複合字','anchors':['unhappy','unable','unkind','unfair','unusual'],'traps':['uncle','uniform','until','understand']},
-  {'id':'in','t':'pre','forms':['in','im','il','ir'],'label':'in / im / il / ir','mean':'不','unit':1,'field':'W1 字首與複合字','anchors':['impolite','impossible','independent','incorrect'],'traps':['important','insect','interest']},
+  {'id':'in','t':'pre','forms':['in','im','il','ir'],'label':'in / im / il / ir','mean':'不／進入','unit':1,'field':'W1 字首與複合字','anchors':['impolite','impossible','independent','incorrect'],'traps':['important','insect','interest']},
   {'id':'dis','t':'pre','forms':['dis'],'mean':'不、相反、分開','unit':1,'field':'W1 字首與複合字','anchors':['disappear','dishonest','discover'],'traps':['discuss','distance']},
   {'id':'mis','t':'pre','forms':['mis'],'mean':'錯誤','unit':1,'field':'W1 字首與複合字','anchors':['mistake'],'traps':['miss','missile']},
   {'id':'non','t':'pre','forms':['non'],'mean':'非、不是','unit':1,'field':'W1 字首與複合字','anchors':[],'traps':[]},
@@ -29,6 +29,45 @@ MORPHEMES = [
   {'id':'mit','t':'root','forms':['miss','mise','mit','mis'],'label':'mit / mis','mean':'送出','unit':9,'field':'W9 移動家族','anchors':['promise'],'traps':['miss','limit','summit']},
   {'id':'duc','t':'root','forms':['duct','duce','duc'],'label':'duc / duct','mean':'引導、帶領','unit':9,'field':'W9 移動家族','anchors':['introduce','produce','production','education'],'traps':['duck']},
   {'id':'ject','t':'root','forms':['ject'],'mean':'丟、拋','unit':9,'field':'W9 移動家族','anchors':['subject','object','project','reject'],'traps':[]},
+]
+
+# 只顯示意思的詞素：課程版其他週的零件，加上講解裡提到的字首。
+# 學生拆字用到時會顯示意思；不出現在地圖、建議拆法和詞表比對。
+def d(id, t, forms, mean, week=None, pos=None, label=None):
+    m = {'id':id, 't':t, 'forms':forms, 'mean':mean, 'display':True}
+    if week: m['week'] = week
+    if pos: m['pos'] = pos
+    if label: m['label'] = label
+    return m
+DISPLAY = [
+  # 課程 W2–W3 字首
+  d('re','pre',['re'],'再、回',2), d('pre','pre',['pre'],'之前',2), d('post','pre',['post'],'之後',2),
+  d('fore','pre',['fore'],'之前',2), d('ex','pre',['ex'],'向外',2), d('e','pre',['e'],'向外（ex 的縮短）',2),
+  d('inter','pre',['inter'],'之間、相互',3), d('sub','pre',['sub','sup','suc','suf'],'在下',3,label='sub'),
+  d('super','pre',['super'],'在上、超過',3), d('trans','pre',['trans'],'跨越',3), d('over','pre',['over'],'過度、在上',3),
+  d('under','pre',['under'],'不足、在下',3),
+  # 講解裡出現、課程沒有單獨教的字首
+  d('pro','pre',['pro'],'向前'), d('con','pre',['con','com','col','cor','co'],'一起、完全',label='con / com'),
+  d('ad','pre',['ad','ac','af','ap','as','at'],'往、到',label='ad'), d('per','pre',['per'],'通過、完全'),
+  d('ob','pre',['ob','op'],'對著、在面前',label='ob'), d('de','pre',['de'],'向下、離開'),
+  # 課程 W5–W7 字尾
+  d('ity','suf',['ility','ity'],'名詞：性質',5,'n','-ity'), d('ance','suf',['ance','ence','ancy','ency'],'名詞：狀態、性質',5,'n','-ance / -ence'),
+  d('er','suf',['er','or','ist'],'名詞：做這件事的人或工具',5,'n','-er / -or / -ist'),
+  d('al','suf',['ical','ial','al'],'形容詞：與…有關',6,'adj','-al'), d('ive','suf',['ative','itive','ive'],'形容詞：有…傾向',6,'adj','-ive'),
+  d('ous','suf',['ious','ous'],'形容詞：充滿…的',6,'adj','-ous'), d('ful','suf',['ful'],'形容詞：充滿',6,'adj'),
+  d('less','suf',['less'],'形容詞：沒有',6,'adj'), d('able','suf',['able','ible'],'形容詞：能被…的',6,'adj','-able / -ible'),
+  d('ize','suf',['ize','ise'],'動詞：使成為',7,'v','-ize'), d('ify','suf',['ify'],'動詞：使…化',7,'v'),
+  d('en','suf',['en'],'動詞：使變得',7,'v'), d('ate','suf',['ate'],'動詞：使、做',7,'v'), d('ly','suf',['ly'],'副詞：…地',7,'adv'),
+  d('ed','suf',['ed'],'過去式／形容詞'), d('ing','suf',['ing'],'動作進行／名詞化'), d('ure','suf',['ure'],'名詞：結果、狀態'),
+  # 課程 W10–W12 字根
+  d('spec','root',['spect','spec','spic'],'看',10,label='spec / spect'), d('vis','root',['vis','vid'],'看',10,label='vis / vid'),
+  d('dict','root',['dict'],'說',10), d('scrib','root',['script','scribe','scrib'],'寫',10,label='scrib / script'),
+  d('aud','root',['aud'],'聽',10), d('struct','root',['struct'],'建造',11),
+  d('fac','root',['fact','fect','fac','fic'],'做',11,label='fac / fect / fic'), d('form','root',['form'],'形狀',11),
+  d('tract','root',['tract'],'拉',11), d('bio','root',['bio'],'生命',12), d('geo','root',['geo'],'土地、地球',12),
+  d('graph','root',['graph','gram'],'寫、畫',12,label='graph / gram'), d('log','root',['logy','log'],'學問、話語',12,label='logy / log'),
+  d('micro','root',['micro'],'小',12), d('tele','root',['tele'],'遠',12), d('phon','root',['phone','phon'],'聲音',12,label='phon'),
+  d('scope','root',['scope'],'看、觀察'), d('pect','root',['pect'],'看（spect 的變形）'),
 ]
 
 COMPOUNDS = {w.replace('+',''): w for w in [
@@ -258,8 +297,8 @@ W13 = {'unit':13,'stage':'用','title':'用：在學科文本裡拆字','morphem
 key['key']['unreasonable'] = ['un']
 key['key']['disappointment'] = ['dis', 'ment']
 
-pack = {'pack':'free','version':'2026.10.2','title':'我的詞族地圖・免費版',
-        'units':[W1, W4, W9, W13], 'morphemes':MORPHEMES, 'compounds':COMPOUNDS,
+pack = {'pack':'free','version':'2026.10.3','title':'我的詞族地圖・免費版',
+        'units':[W1, W4, W9, W13], 'morphemes':MORPHEMES + DISPLAY, 'compounds':COMPOUNDS,
         'key':key['key'], 'traps':key['traps']}
 out = ROOT / 'site' / 'content' / 'free.json'
 out.write_text(json.dumps(pack, ensure_ascii=False, indent=1), encoding='utf-8')

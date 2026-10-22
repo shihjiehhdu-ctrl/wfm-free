@@ -46,6 +46,7 @@
       <button class="tab" role="tab" id="tab-map" aria-controls="v-map" aria-selected="false" type="button">地圖</button>
       <button class="tab" role="tab" id="tab-wc" aria-controls="v-wc" aria-selected="false" type="button">詞性表</button>
       <button class="tab" role="tab" id="tab-review" aria-controls="v-review" aria-selected="false" type="button">複習</button>
+      <button class="tab locked-tab" role="tab" id="tab-wall" aria-controls="v-wall" aria-selected="false" type="button">班級牆 <span class="lock">課程版</span></button>
     </nav>
   </div>
 </header>
@@ -168,6 +169,10 @@
 </section>
 
 <!-- 複習 -->
+<section class="view" id="v-wall" role="tabpanel" aria-labelledby="tab-wall" hidden>
+  <div class="panel" id="wallPanel"></div>
+</section>
+
 <section class="view" id="v-review" role="tabpanel" aria-labelledby="tab-review" hidden>
   <div class="panel" id="reviewPanel"></div>
 </section>

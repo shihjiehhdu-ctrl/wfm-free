@@ -153,9 +153,9 @@ function suggest(word){
     if (!out.has(key) || out.get(key) < score) out.set(key, score);
   };
   if (COMP[word]) add(COMP[word].split('+'), 6);
-  const pres = M.filter(m => m.t === 'pre').flatMap(m => m.forms.map(f => ({f, m})));
-  const sufs = M.filter(m => m.t === 'suf').flatMap(m => m.forms.map(f => ({f, m})));
-  const roots = M.filter(m => m.t === 'root').flatMap(m => m.forms.map(f => ({f, m})));
+  const pres = M.filter(m => m.t === 'pre' && !m.display).flatMap(m => m.forms.map(f => ({f, m})));
+  const sufs = M.filter(m => m.t === 'suf' && !m.display).flatMap(m => m.forms.map(f => ({f, m})));
+  const roots = M.filter(m => m.t === 'root' && !m.display).flatMap(m => m.forms.map(f => ({f, m})));
   const preOpts = [null, ...pres.filter(p => word.startsWith(p.f) && word.length - p.f.length >= 3)];
   for (const p of preOpts) {
     const r1 = p ? word.slice(p.f.length) : word;
@@ -228,12 +228,15 @@ $('#unitPick').addEventListener('click', e => {
 });
 
 /* ---------- tabs ---------- */
-const TABS = ['lesson','capture','map','wc','review'];
+const TABS = ['lesson','capture','map','wc','review','wall'];
+const FEAT = Object.assign({wall:false, ask:false}, cfg.FEATURES || {});
+const ASK_OFF = '提問和班級牆是課程版的功能';
+const askBtn = (cls = 'btn btn-quiet') => `<button type="button" class="${cls} ask-off" disabled aria-disabled="true" title="${ASK_OFF}">提問 <span class="lock">課程版</span></button>`;
 TABS.forEach(t => $('#tab-' + t).addEventListener('click', () => { ui.tab = t; if (t === 'review') ui.review = null; renderTabs(); renderView(); }));
 function renderTabs(){ TABS.forEach(t => { $('#tab-' + t).setAttribute('aria-selected', String(ui.tab === t)); $('#v-' + t).hidden = ui.tab !== t; }); }
 function renderView(){
   stopSpeech();
-  ({lesson:renderLesson, capture:renderCaptureSide, map:renderMap, wc:renderWC, review:renderReview})[ui.tab]();
+  ({lesson:renderLesson, capture:renderCaptureSide, map:renderMap, wc:renderWC, review:renderReview, wall:renderWall})[ui.tab]();
 }
 
 /* ---------- lesson ---------- */
@@ -410,6 +413,7 @@ function showCheck(entry, res){
   const btns = [];
   if (res.kind === 'trap') btns.push('<button type="button" class="btn btn-quiet" data-fix="whole">改成不能拆</button>');
   if (res.kind === 'mismatch' || res.kind === 'trap') btns.push('<button type="button" class="btn btn-quiet" data-fix="edit">重新拆</button>');
+  if (res.kind !== 'key') btns.push(askBtn());
   box.innerHTML = `<div class="check ${res.kind === 'mismatch' ? 'trap' : res.kind}"><span class="ct">${esc(entry.word)}：${title}</span><span>${esc(res.msg)}</span>${btns.length ? `<div class="actions">${btns.join('')}</div>` : ''}</div>`;
   box.dataset.id = entry.id;
 }
@@ -457,18 +461,18 @@ function renderCaptureSide(){
   $('#unitMorphs').innerHTML = u.morphemes.map(id => MBY[id]).map(m =>
     `<div class="mrow"><span class="f">${esc(mLabel(m))}</span><span class="mean">${esc(m.mean)}</span><span class="n">${countFor(m.id)} 個</span></div>`).join('');
   const rec = [...state.entries].sort((a, b) => b.ts - a.ts).slice(0, 8);
-  $('#recent').innerHTML = rec.length ? rec.map(e => `<li><span class="w">${esc(e.word)}</span><span class="meta">${esc(e.parts.map(p => p.s).join(' + '))}</span>${badgeFor(e)}</li>`).join('')
+  $('#recent').innerHTML = rec.length ? rec.map(e => `<li><span class="w">${esc(e.word)}</span><span class="meta">${esc(e.parts.map(p => p.s).join(' + '))}</span>${badgeFor(e)}${e.check !== 'key' ? askBtn('share') : ''}</li>`).join('')
     : '<li><span class="meta">還沒有紀錄。先聽完講解，再從正在讀的書裡找第一個字。</span></li>';
 }
 
 /* ---------- map ---------- */
 function renderMap(){
-  if (!ui.mapSel || !MBY[ui.mapSel]) {
+  if (!ui.mapSel || !MBY[ui.mapSel] || MBY[ui.mapSel].display) {
     const own = unitOf(state.unit).morphemes;
     ui.mapSel = own.map(id => [id, countFor(id)]).sort((a, b) => b[1] - a[1])[0][0];
   }
   const groups = [];
-  M.forEach(m => { let g = groups.find(x => x.field === m.field); if (!g) groups.push(g = {field:m.field, items:[]}); g.items.push(m); });
+  M.filter(m => !m.display).forEach(m => { let g = groups.find(x => x.field === m.field); if (!g) groups.push(g = {field:m.field, items:[]}); g.items.push(m); });
   $('#mnav').innerHTML = groups.map(g => `<div class="group"><h3>${esc(g.field)}</h3>` + g.items.map(m =>
     `<button type="button" class="mbtn" data-id="${m.id}" aria-current="${ui.mapSel === m.id}"><span class="f">${esc(mLabel(m))}</span><span class="mean">${esc(m.mean)}</span><span class="n">${countFor(m.id)}</span></button>`).join('') + '</div>').join('');
   const m = MBY[ui.mapSel];
@@ -519,7 +523,7 @@ function renderDetail(id){
     ${en.gloss ? `<p style="margin:10px 0 0"><b>零件的意思：</b>${esc(en.gloss)}</p>` : ''}
     ${en.meaning ? `<p style="margin:6px 0 0"><b>在句子裡：</b>${esc(en.meaning)}</p>` : ''}
     <div class="kv" style="margin-top:10px"><span>詞性 <b>${esc(POS_LABEL[en.pos] || '')}</b></span><span>透明度 <b>${esc(en.clarity)}</b></span><span>狀態 ${badgeFor(en)}</span>${en.book ? `<span>出處 <b>${esc(en.book)}</b></span>` : ''}<span>記錄於 <b>W${en.unit}</b></span></div>
-    <div class="actions" style="margin-top:12px"><button type="button" class="danger" id="delWord">刪除這個字</button><span id="delConfirm"></span></div>`;
+    <div class="actions" style="margin-top:12px">${en.check !== 'key' ? askBtn() : ''}<button type="button" class="danger" id="delWord">刪除這個字</button><span id="delConfirm"></span></div>`;
   $('#delWord').addEventListener('click', () => {
     $('#delConfirm').innerHTML = '確定刪除？ <button type="button" class="danger" id="delYes">刪除</button> <button type="button" class="btn btn-quiet" style="padding:4px 12px;font-size:.84rem" id="delNo">保留</button>';
     $('#delYes').addEventListener('click', () => { state.entries = state.entries.filter(x => x.id !== id); markDelete(id); ui.mapWord = null; renderHeader(); renderMap(); toast('已刪除'); });
@@ -583,6 +587,34 @@ $('#reviewPanel').addEventListener('click', e => {
   }
   renderReview();
 });
+
+/* ---------- class wall (course tier; shown disabled in the free tier) ---------- */
+const WALL_PREVIEW = [
+  {by:'小安', word:'passport', split:'pass + port', sentence:'Keep your passport in a safe place.', doubt:'這裡的 port 是港口，還是搬運？', same:3, status:'已回答',
+   answer:'兩個都對：port 原本就是「貨物和人進出、被搬運的地方」。passport 是讓你「通過港口」的文件。'},
+  {by:'Leo', word:'important', split:'im + port + ant', sentence:'It is important to drink water.', doubt:'拆得開，可是意思好像對不上？', same:2, status:'排入直播'},
+  {by:'芮芮', word:'unemployment', split:'un + employ + ment', sentence:'Unemployment rose last year.', doubt:'un 和 ment 一起出現，要先拆哪一個？', same:1, status:'待回答'}
+];
+function renderWall(){
+  $('#wallPanel').innerHTML = `
+    <div class="wall-lock">
+      <span class="eyebrow">課程版功能</span>
+      <h2>班級牆：把拿不準的字，變成全班的問題</h2>
+      <p class="sub">課程版的學生加入班級後，可以把拿不準的字按「提問」送到班級牆。同學可以按「我也這樣想」，老師會在每週直播一題一題回答，回答後地圖上的狀態也會更新。</p>
+      <div class="actions"><a class="btn btn-primary" href="${esc(cfg.COURSE_URL || '#')}" target="_blank" rel="noopener">了解課程版</a>
+        <button type="button" class="btn btn-quiet" disabled aria-disabled="true">輸入班級代碼 <span class="lock">課程版</span></button></div>
+    </div>
+    <p class="proto-note">下面是班級牆的樣子（示意，無法操作）：</p>
+    <div class="posts preview" aria-hidden="true">${WALL_PREVIEW.map(p => `
+      <article class="post">
+        <div class="ph"><span class="pw">${esc(p.word)}</span><span class="qstatus">${esc(p.status)}</span><span class="by">${esc(p.by)}</span></div>
+        <div class="meta mono">${esc(p.split)}</div>
+        <div class="ps">${esc(p.sentence)}</div>
+        <div class="doubt"><b>不確定的地方</b>${esc(p.doubt)}</div>
+        ${p.answer ? `<div class="answer confirmed"><span class="ah">老師回答 · 直播</span><p>${esc(p.answer)}</p></div>` : ''}
+        <div class="votes"><button type="button" class="vote" disabled tabindex="-1">我也這樣想 ${p.same}</button><button type="button" class="vote" disabled tabindex="-1">我有不同看法 0</button></div>
+      </article>`).join('')}</div>`;
+}
 
 /* ---------- account ---------- */
 const acct = $('#acctSheet');

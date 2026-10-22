@@ -249,3 +249,27 @@ details.script em{font-family:var(--body);font-style:italic;color:var(--ink);bac
 .passage p{margin:0 0 10px}.passage p:last-child{margin:0}
 .passage .pw{background:none;border:none;padding:0 1px;font:inherit;color:var(--ink);text-decoration:underline;text-decoration-color:var(--amber);text-decoration-thickness:2px;text-underline-offset:4px;border-radius:4px}
 .passage .pw:hover{background:var(--amber-soft)}
+/* course-tier features shown disabled */
+.tab .lock,.btn .lock,.share .lock{font-family:var(--mono);font-size:.64rem;letter-spacing:.04em;color:var(--amber-deep);border:1px solid #F1D3A0;border-radius:4px;padding:0 4px;font-weight:500}
+.tab.locked-tab{opacity:.7}
+.tab.locked-tab .lock{color:var(--amber);border-color:rgba(232,163,61,.5)}
+.ask-off{opacity:.55;cursor:not-allowed}
+.share.ask-off{border-color:var(--line);color:var(--muted)}
+.wall-lock{border:1.5px dashed #F1D3A0;background:var(--amber-soft);border-radius:14px;padding:18px}
+.wall-lock h2{margin-top:6px}
+.posts{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-top:10px}
+.posts.preview{opacity:.6;filter:grayscale(.3);pointer-events:none;user-select:none}
+.post{border:1px solid var(--line);border-radius:14px;padding:16px;background:var(--paper);display:flex;flex-direction:column;gap:8px;min-width:0}
+.post .ph{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.post .pw{font-family:var(--mono);font-size:1.15rem;font-weight:600;color:var(--ink)}
+.post .by{font-size:.78rem;color:var(--muted);margin-left:auto}
+.post .meta{font-size:.84rem;color:var(--muted)}
+.post .ps{font-size:.88rem;font-style:italic;overflow-wrap:anywhere}
+.post .doubt{font-size:.86rem;background:var(--amber-soft);border-radius:8px;padding:8px 10px}
+.post .doubt b{display:block;font-size:.74rem;color:#7A4E0C}
+.qstatus{font-size:.72rem;font-weight:700;border-radius:999px;padding:2px 9px;background:var(--mist);color:var(--teal-deep)}
+.answer{border-radius:10px;padding:10px 12px;font-size:.86rem;background:var(--sea-soft);border:1px solid #9FD3CA}
+.answer .ah{font-size:.74rem;font-weight:700;color:var(--teal-deep)}
+.answer p{margin:4px 0 0}
+.votes{display:flex;gap:8px;flex-wrap:wrap}
+.vote{border:1.5px solid var(--line);background:var(--paper);border-radius:999px;padding:4px 12px;font-size:.82rem;font-weight:700;color:var(--muted)}

@@ -1,6 +1,6 @@
 {
  "pack": "free",
- "version": "2026.10.2",
+ "version": "2026.10.3",
  "title": "我的詞族地圖・免費版",
  "units": [
   {
@@ -927,7 +927,7 @@
     "ir"
    ],
    "label": "in / im / il / ir",
-   "mean": "不",
+   "mean": "不／進入",
    "unit": 1,
    "field": "W1 字首與複合字",
    "anchors": [
@@ -1138,6 +1138,595 @@
     "reject"
    ],
    "traps": []
+  },
+  {
+   "id": "re",
+   "t": "pre",
+   "forms": [
+    "re"
+   ],
+   "mean": "再、回",
+   "display": true,
+   "week": 2
+  },
+  {
+   "id": "pre",
+   "t": "pre",
+   "forms": [
+    "pre"
+   ],
+   "mean": "之前",
+   "display": true,
+   "week": 2
+  },
+  {
+   "id": "post",
+   "t": "pre",
+   "forms": [
+    "post"
+   ],
+   "mean": "之後",
+   "display": true,
+   "week": 2
+  },
+  {
+   "id": "fore",
+   "t": "pre",
+   "forms": [
+    "fore"
+   ],
+   "mean": "之前",
+   "display": true,
+   "week": 2
+  },
+  {
+   "id": "ex",
+   "t": "pre",
+   "forms": [
+    "ex"
+   ],
+   "mean": "向外",
+   "display": true,
+   "week": 2
+  },
+  {
+   "id": "e",
+   "t": "pre",
+   "forms": [
+    "e"
+   ],
+   "mean": "向外（ex 的縮短）",
+   "display": true,
+   "week": 2
+  },
+  {
+   "id": "inter",
+   "t": "pre",
+   "forms": [
+    "inter"
+   ],
+   "mean": "之間、相互",
+   "display": true,
+   "week": 3
+  },
+  {
+   "id": "sub",
+   "t": "pre",
+   "forms": [
+    "sub",
+    "sup",
+    "suc",
+    "suf"
+   ],
+   "mean": "在下",
+   "display": true,
+   "week": 3,
+   "label": "sub"
+  },
+  {
+   "id": "super",
+   "t": "pre",
+   "forms": [
+    "super"
+   ],
+   "mean": "在上、超過",
+   "display": true,
+   "week": 3
+  },
+  {
+   "id": "trans",
+   "t": "pre",
+   "forms": [
+    "trans"
+   ],
+   "mean": "跨越",
+   "display": true,
+   "week": 3
+  },
+  {
+   "id": "over",
+   "t": "pre",
+   "forms": [
+    "over"
+   ],
+   "mean": "過度、在上",
+   "display": true,
+   "week": 3
+  },
+  {
+   "id": "under",
+   "t": "pre",
+   "forms": [
+    "under"
+   ],
+   "mean": "不足、在下",
+   "display": true,
+   "week": 3
+  },
+  {
+   "id": "pro",
+   "t": "pre",
+   "forms": [
+    "pro"
+   ],
+   "mean": "向前",
+   "display": true
+  },
+  {
+   "id": "con",
+   "t": "pre",
+   "forms": [
+    "con",
+    "com",
+    "col",
+    "cor",
+    "co"
+   ],
+   "mean": "一起、完全",
+   "display": true,
+   "label": "con / com"
+  },
+  {
+   "id": "ad",
+   "t": "pre",
+   "forms": [
+    "ad",
+    "ac",
+    "af",
+    "ap",
+    "as",
+    "at"
+   ],
+   "mean": "往、到",
+   "display": true,
+   "label": "ad"
+  },
+  {
+   "id": "per",
+   "t": "pre",
+   "forms": [
+    "per"
+   ],
+   "mean": "通過、完全",
+   "display": true
+  },
+  {
+   "id": "ob",
+   "t": "pre",
+   "forms": [
+    "ob",
+    "op"
+   ],
+   "mean": "對著、在面前",
+   "display": true,
+   "label": "ob"
+  },
+  {
+   "id": "de",
+   "t": "pre",
+   "forms": [
+    "de"
+   ],
+   "mean": "向下、離開",
+   "display": true
+  },
+  {
+   "id": "ity",
+   "t": "suf",
+   "forms": [
+    "ility",
+    "ity"
+   ],
+   "mean": "名詞：性質",
+   "display": true,
+   "week": 5,
+   "pos": "n",
+   "label": "-ity"
+  },
+  {
+   "id": "ance",
+   "t": "suf",
+   "forms": [
+    "ance",
+    "ence",
+    "ancy",
+    "ency"
+   ],
+   "mean": "名詞：狀態、性質",
+   "display": true,
+   "week": 5,
+   "pos": "n",
+   "label": "-ance / -ence"
+  },
+  {
+   "id": "er",
+   "t": "suf",
+   "forms": [
+    "er",
+    "or",
+    "ist"
+   ],
+   "mean": "名詞：做這件事的人或工具",
+   "display": true,
+   "week": 5,
+   "pos": "n",
+   "label": "-er / -or / -ist"
+  },
+  {
+   "id": "al",
+   "t": "suf",
+   "forms": [
+    "ical",
+    "ial",
+    "al"
+   ],
+   "mean": "形容詞：與…有關",
+   "display": true,
+   "week": 6,
+   "pos": "adj",
+   "label": "-al"
+  },
+  {
+   "id": "ive",
+   "t": "suf",
+   "forms": [
+    "ative",
+    "itive",
+    "ive"
+   ],
+   "mean": "形容詞：有…傾向",
+   "display": true,
+   "week": 6,
+   "pos": "adj",
+   "label": "-ive"
+  },
+  {
+   "id": "ous",
+   "t": "suf",
+   "forms": [
+    "ious",
+    "ous"
+   ],
+   "mean": "形容詞：充滿…的",
+   "display": true,
+   "week": 6,
+   "pos": "adj",
+   "label": "-ous"
+  },
+  {
+   "id": "ful",
+   "t": "suf",
+   "forms": [
+    "ful"
+   ],
+   "mean": "形容詞：充滿",
+   "display": true,
+   "week": 6,
+   "pos": "adj"
+  },
+  {
+   "id": "less",
+   "t": "suf",
+   "forms": [
+    "less"
+   ],
+   "mean": "形容詞：沒有",
+   "display": true,
+   "week": 6,
+   "pos": "adj"
+  },
+  {
+   "id": "able",
+   "t": "suf",
+   "forms": [
+    "able",
+    "ible"
+   ],
+   "mean": "形容詞：能被…的",
+   "display": true,
+   "week": 6,
+   "pos": "adj",
+   "label": "-able / -ible"
+  },
+  {
+   "id": "ize",
+   "t": "suf",
+   "forms": [
+    "ize",
+    "ise"
+   ],
+   "mean": "動詞：使成為",
+   "display": true,
+   "week": 7,
+   "pos": "v",
+   "label": "-ize"
+  },
+  {
+   "id": "ify",
+   "t": "suf",
+   "forms": [
+    "ify"
+   ],
+   "mean": "動詞：使…化",
+   "display": true,
+   "week": 7,
+   "pos": "v"
+  },
+  {
+   "id": "en",
+   "t": "suf",
+   "forms": [
+    "en"
+   ],
+   "mean": "動詞：使變得",
+   "display": true,
+   "week": 7,
+   "pos": "v"
+  },
+  {
+   "id": "ate",
+   "t": "suf",
+   "forms": [
+    "ate"
+   ],
+   "mean": "動詞：使、做",
+   "display": true,
+   "week": 7,
+   "pos": "v"
+  },
+  {
+   "id": "ly",
+   "t": "suf",
+   "forms": [
+    "ly"
+   ],
+   "mean": "副詞：…地",
+   "display": true,
+   "week": 7,
+   "pos": "adv"
+  },
+  {
+   "id": "ed",
+   "t": "suf",
+   "forms": [
+    "ed"
+   ],
+   "mean": "過去式／形容詞",
+   "display": true
+  },
+  {
+   "id": "ing",
+   "t": "suf",
+   "forms": [
+    "ing"
+   ],
+   "mean": "動作進行／名詞化",
+   "display": true
+  },
+  {
+   "id": "ure",
+   "t": "suf",
+   "forms": [
+    "ure"
+   ],
+   "mean": "名詞：結果、狀態",
+   "display": true
+  },
+  {
+   "id": "spec",
+   "t": "root",
+   "forms": [
+    "spect",
+    "spec",
+    "spic"
+   ],
+   "mean": "看",
+   "display": true,
+   "week": 10,
+   "label": "spec / spect"
+  },
+  {
+   "id": "vis",
+   "t": "root",
+   "forms": [
+    "vis",
+    "vid"
+   ],
+   "mean": "看",
+   "display": true,
+   "week": 10,
+   "label": "vis / vid"
+  },
+  {
+   "id": "dict",
+   "t": "root",
+   "forms": [
+    "dict"
+   ],
+   "mean": "說",
+   "display": true,
+   "week": 10
+  },
+  {
+   "id": "scrib",
+   "t": "root",
+   "forms": [
+    "script",
+    "scribe",
+    "scrib"
+   ],
+   "mean": "寫",
+   "display": true,
+   "week": 10,
+   "label": "scrib / script"
+  },
+  {
+   "id": "aud",
+   "t": "root",
+   "forms": [
+    "aud"
+   ],
+   "mean": "聽",
+   "display": true,
+   "week": 10
+  },
+  {
+   "id": "struct",
+   "t": "root",
+   "forms": [
+    "struct"
+   ],
+   "mean": "建造",
+   "display": true,
+   "week": 11
+  },
+  {
+   "id": "fac",
+   "t": "root",
+   "forms": [
+    "fact",
+    "fect",
+    "fac",
+    "fic"
+   ],
+   "mean": "做",
+   "display": true,
+   "week": 11,
+   "label": "fac / fect / fic"
+  },
+  {
+   "id": "form",
+   "t": "root",
+   "forms": [
+    "form"
+   ],
+   "mean": "形狀",
+   "display": true,
+   "week": 11
+  },
+  {
+   "id": "tract",
+   "t": "root",
+   "forms": [
+    "tract"
+   ],
+   "mean": "拉",
+   "display": true,
+   "week": 11
+  },
+  {
+   "id": "bio",
+   "t": "root",
+   "forms": [
+    "bio"
+   ],
+   "mean": "生命",
+   "display": true,
+   "week": 12
+  },
+  {
+   "id": "geo",
+   "t": "root",
+   "forms": [
+    "geo"
+   ],
+   "mean": "土地、地球",
+   "display": true,
+   "week": 12
+  },
+  {
+   "id": "graph",
+   "t": "root",
+   "forms": [
+    "graph",
+    "gram"
+   ],
+   "mean": "寫、畫",
+   "display": true,
+   "week": 12,
+   "label": "graph / gram"
+  },
+  {
+   "id": "log",
+   "t": "root",
+   "forms": [
+    "logy",
+    "log"
+   ],
+   "mean": "學問、話語",
+   "display": true,
+   "week": 12,
+   "label": "logy / log"
+  },
+  {
+   "id": "micro",
+   "t": "root",
+   "forms": [
+    "micro"
+   ],
+   "mean": "小",
+   "display": true,
+   "week": 12
+  },
+  {
+   "id": "tele",
+   "t": "root",
+   "forms": [
+    "tele"
+   ],
+   "mean": "遠",
+   "display": true,
+   "week": 12
+  },
+  {
+   "id": "phon",
+   "t": "root",
+   "forms": [
+    "phone",
+    "phon"
+   ],
+   "mean": "聲音",
+   "display": true,
+   "week": 12,
+   "label": "phon"
+  },
+  {
+   "id": "scope",
+   "t": "root",
+   "forms": [
+    "scope"
+   ],
+   "mean": "看、觀察",
+   "display": true
+  },
+  {
+   "id": "pect",
+   "t": "root",
+   "forms": [
+    "pect"
+   ],
+   "mean": "看（spect 的變形）",
+   "display": true
   }
  ],
  "compounds": {

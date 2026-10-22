@@ -1,4 +1,5 @@
-/* 我的詞族地圖・免費版（W1、W4、W9）
+/* 我的詞族地圖（免費版／課程版／進階版共用同一份程式）
+ * 版本由後端「學生」工作表的「版本」欄決定，登入時回傳 tier、features、pack。
  * 資料流：本機優先（localStorage）→ 背景同步到 Apps Script。
  * Entry 結構與課程版、進階版相同，升級時直接沿用。
  */
@@ -110,8 +111,9 @@ async function login(token){
     if (!out.ok) { showGate(out.message || '找不到這個 token。'); return; }
     const local = loadLocal();
     state = local && local.token === token ? local : blankState(token, out.child);
-    state.child = out.child;
+    applyTier(out);
     mergeServer(out.entries, out.progress);
+    await loadPack(state.pack);
     save(); start();
   } catch (err) {
     const local = loadLocal();
@@ -217,6 +219,9 @@ const unitOf = n => UNITS.find(u => u.unit === n);
 
 /* ---------- header ---------- */
 function renderHeader(){
+  $('#tierLabel').textContent = state.tierLabel || '免費版';
+  $('#tab-wall').classList.toggle('locked-tab', !feat('wall'));
+  $('#tab-wall').innerHTML = feat('wall') ? '班級牆' : '班級牆 <span class="lock">課程版</span>';
   $('#unitPick').innerHTML = UNITS.map(u => `<button type="button" data-u="${u.unit}" aria-pressed="${state.unit === u.unit}">W${u.unit}</button>`).join('');
   $('#countPill').textContent = `${state.entries.length} 個字`;
   $('#acctBtn').textContent = state.child || '帳號';
@@ -229,9 +234,13 @@ $('#unitPick').addEventListener('click', e => {
 
 /* ---------- tabs ---------- */
 const TABS = ['lesson','capture','map','wc','review','wall'];
-const FEAT = Object.assign({wall:false, ask:false}, cfg.FEATURES || {});
+const feat = name => !!(state && state.features && state.features[name]);
 const ASK_OFF = '提問和班級牆是課程版的功能';
-const askBtn = (cls = 'btn btn-quiet') => `<button type="button" class="${cls} ask-off" disabled aria-disabled="true" title="${ASK_OFF}">提問 <span class="lock">課程版</span></button>`;
+const askBtn = (cls = 'btn btn-quiet', id = '') => feat('ask')
+  ? `<button type="button" class="${cls} ask-on" data-ask="${esc(id)}">提問</button>`
+  : `<button type="button" class="${cls} ask-off" disabled aria-disabled="true" title="${ASK_OFF}">提問 <span class="lock">課程版</span></button>`;
+// 課程版的提問流程之後接在這裡（後端會再檢查版本）
+document.addEventListener('click', e => { const b = e.target.closest('[data-ask]'); if (b) toast('提問功能會在開課時啟用'); });
 TABS.forEach(t => $('#tab-' + t).addEventListener('click', () => { ui.tab = t; if (t === 'review') ui.review = null; renderTabs(); renderView(); }));
 function renderTabs(){ TABS.forEach(t => { $('#tab-' + t).setAttribute('aria-selected', String(ui.tab === t)); $('#v-' + t).hidden = ui.tab !== t; }); }
 function renderView(){
@@ -413,7 +422,7 @@ function showCheck(entry, res){
   const btns = [];
   if (res.kind === 'trap') btns.push('<button type="button" class="btn btn-quiet" data-fix="whole">改成不能拆</button>');
   if (res.kind === 'mismatch' || res.kind === 'trap') btns.push('<button type="button" class="btn btn-quiet" data-fix="edit">重新拆</button>');
-  if (res.kind !== 'key') btns.push(askBtn());
+  if (res.kind !== 'key') btns.push(askBtn('btn btn-quiet', entry.id));
   box.innerHTML = `<div class="check ${res.kind === 'mismatch' ? 'trap' : res.kind}"><span class="ct">${esc(entry.word)}：${title}</span><span>${esc(res.msg)}</span>${btns.length ? `<div class="actions">${btns.join('')}</div>` : ''}</div>`;
   box.dataset.id = entry.id;
 }
@@ -461,7 +470,7 @@ function renderCaptureSide(){
   $('#unitMorphs').innerHTML = u.morphemes.map(id => MBY[id]).map(m =>
     `<div class="mrow"><span class="f">${esc(mLabel(m))}</span><span class="mean">${esc(m.mean)}</span><span class="n">${countFor(m.id)} 個</span></div>`).join('');
   const rec = [...state.entries].sort((a, b) => b.ts - a.ts).slice(0, 8);
-  $('#recent').innerHTML = rec.length ? rec.map(e => `<li><span class="w">${esc(e.word)}</span><span class="meta">${esc(e.parts.map(p => p.s).join(' + '))}</span>${badgeFor(e)}${e.check !== 'key' ? askBtn('share') : ''}</li>`).join('')
+  $('#recent').innerHTML = rec.length ? rec.map(e => `<li><span class="w">${esc(e.word)}</span><span class="meta">${esc(e.parts.map(p => p.s).join(' + '))}</span>${badgeFor(e)}${e.check !== 'key' ? askBtn('share', e.id) : ''}</li>`).join('')
     : '<li><span class="meta">還沒有紀錄。先聽完講解，再從正在讀的書裡找第一個字。</span></li>';
 }
 
@@ -523,7 +532,7 @@ function renderDetail(id){
     ${en.gloss ? `<p style="margin:10px 0 0"><b>零件的意思：</b>${esc(en.gloss)}</p>` : ''}
     ${en.meaning ? `<p style="margin:6px 0 0"><b>在句子裡：</b>${esc(en.meaning)}</p>` : ''}
     <div class="kv" style="margin-top:10px"><span>詞性 <b>${esc(POS_LABEL[en.pos] || '')}</b></span><span>透明度 <b>${esc(en.clarity)}</b></span><span>狀態 ${badgeFor(en)}</span>${en.book ? `<span>出處 <b>${esc(en.book)}</b></span>` : ''}<span>記錄於 <b>W${en.unit}</b></span></div>
-    <div class="actions" style="margin-top:12px">${en.check !== 'key' ? askBtn() : ''}<button type="button" class="danger" id="delWord">刪除這個字</button><span id="delConfirm"></span></div>`;
+    <div class="actions" style="margin-top:12px">${en.check !== 'key' ? askBtn('btn btn-quiet', en.id) : ''}<button type="button" class="danger" id="delWord">刪除這個字</button><span id="delConfirm"></span></div>`;
   $('#delWord').addEventListener('click', () => {
     $('#delConfirm').innerHTML = '確定刪除？ <button type="button" class="danger" id="delYes">刪除</button> <button type="button" class="btn btn-quiet" style="padding:4px 12px;font-size:.84rem" id="delNo">保留</button>';
     $('#delYes').addEventListener('click', () => { state.entries = state.entries.filter(x => x.id !== id); markDelete(id); ui.mapWord = null; renderHeader(); renderMap(); toast('已刪除'); });
@@ -596,6 +605,13 @@ const WALL_PREVIEW = [
   {by:'芮芮', word:'unemployment', split:'un + employ + ment', sentence:'Unemployment rose last year.', doubt:'un 和 ment 一起出現，要先拆哪一個？', same:1, status:'待回答'}
 ];
 function renderWall(){
+  if (feat('wall')) {
+    $('#wallPanel').innerHTML = `<span class="eyebrow">班級牆 · ${esc(state.classCode || '尚未加入班級')}</span>
+      <h2>這一班的提問會出現在這裡</h2>
+      <p class="sub">班級牆會在開課時啟用。到時候，你按「提問」送出的字，會和同學的問題一起出現在這裡，老師會在每週直播回答。</p>
+      <div class="locked"><div class="big">還沒有提問</div>開課後，第一個問題就從你在書裡找到的字開始。</div>`;
+    return;
+  }
   $('#wallPanel').innerHTML = `
     <div class="wall-lock">
       <span class="eyebrow">課程版功能</span>
@@ -643,19 +659,43 @@ function start(){
   renderAll();
   if (hasPending()) scheduleSync(800);
 }
-async function boot(){
+/* ---------- tier: which version this student sees ---------- */
+const DEFAULT_PACK = cfg.CONTENT_URL || 'content/free.json';
+let packUrl = null;
+function applyTier(out){
+  state.child = out.child;
+  state.tier = out.tier || 'free';
+  state.tierLabel = out.tierLabel || '免費版';
+  state.features = out.features || {wall:false, ask:false};
+  state.classCode = out.classCode || '';
+  state.pack = out.pack || DEFAULT_PACK;
+}
+function setPack(p){ PACK = p; M = PACK.morphemes; MBY = Object.fromEntries(M.map(m => [m.id, m])); UNITS = PACK.units; COMP = PACK.compounds; }
+async function loadPack(url){
+  url = url || DEFAULT_PACK;
+  if (url === packUrl) return;
   try {
-    PACK = await (await fetch(cfg.CONTENT_URL || 'content/free.json', {cache:'no-cache'})).json();
-  } catch (e) { document.body.innerHTML = '<p style="padding:24px">內容載入失敗，請重新整理頁面。</p>'; return; }
-  M = PACK.morphemes; MBY = Object.fromEntries(M.map(m => [m.id, m])); UNITS = PACK.units; COMP = PACK.compounds;
+    const res = await fetch(url, {cache:'no-cache'});
+    if (!res.ok) throw new Error(res.status);
+    setPack(await res.json()); packUrl = url;
+  } catch (e) {
+    if (!PACK) { setPack(await (await fetch(DEFAULT_PACK, {cache:'no-cache'})).json()); packUrl = DEFAULT_PACK; }
+  }
+  if (state && !UNITS.some(u => u.unit === state.unit)) state.unit = UNITS[0].unit;
+}
+async function boot(){
+  try { await loadPack(DEFAULT_PACK); }
+  catch (e) { document.body.innerHTML = '<p style="padding:24px">內容載入失敗，請重新整理頁面。</p>'; return; }
   const params = new URLSearchParams(location.search);
   const t = params.get('t');
   if (t) { history.replaceState(null, '', location.pathname); await login(t); return; }
   const local = loadLocal();
   if (local && local.token) {
-    state = local; start();
-    API.call('login', {token: state.token}).then(out => {
-      if (out && out.ok) { state.child = out.child; mergeServer(out.entries, out.progress); save(); renderAll(); }
+    state = local;
+    await loadPack(state.pack);
+    start();
+    API.call('login', {token: state.token}).then(async out => {
+      if (out && out.ok) { applyTier(out); mergeServer(out.entries, out.progress); await loadPack(state.pack); save(); renderAll(); }
       else if (out && out.code === 'bad_token') forceLogout('這個 token 已失效，請重新登入。');
     }).catch(() => renderSync(true));
     return;

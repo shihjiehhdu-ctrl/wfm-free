@@ -8,8 +8,12 @@
   const DEMO_KEY = 'wfm.demoBackend';
 
   function demoDB(){
-    try { return JSON.parse(localStorage.getItem(DEMO_KEY)) || {students:{DEMO01:{child:'示範同學', entries:{}, progress:{}}}}; }
-    catch (e) { return {students:{DEMO01:{child:'示範同學', entries:{}, progress:{}}}}; }
+    let db = null;
+    try { db = JSON.parse(localStorage.getItem(DEMO_KEY)); } catch (e) {}
+    db = db || {students:{}};
+    db.students.DEMO01 = db.students.DEMO01 || {child:'示範同學', tier:'free', entries:{}, progress:{}};
+    db.students.DEMOC1 = db.students.DEMOC1 || {child:'課程版同學', tier:'course', classCode:'DEMO-A', entries:{}, progress:{}};
+    return db;
   }
   function demoSave(db){ try { localStorage.setItem(DEMO_KEY, JSON.stringify(db)); } catch (e) {} }
   function demoToken(){ const A = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; let t = ''; for (let i = 0; i < 6; i++) t += A[Math.floor(Math.random() * A.length)]; return t; }
@@ -25,7 +29,12 @@
     }
     const st = db.students[String(p.token || '').toUpperCase()];
     if (!st) return {ok:false, code:'bad_token', message:'找不到這個 token，請確認信裡的代碼。'};
-    if (action === 'login') return {ok:true, child: st.child, entries: Object.values(st.entries), progress: st.progress || {}};
+    const TIERS = {free:{label:'免費版', pack:'content/free.json', features:{wall:false, ask:false}},
+                   course:{label:'課程版', pack:'content/course.json', features:{wall:true, ask:true}},
+                   advanced:{label:'進階版', pack:'content/advanced.json', features:{wall:false, ask:true}}};
+    const tier = TIERS[st.tier] ? st.tier : 'free';
+    if (action === 'login') return {ok:true, child: st.child, entries: Object.values(st.entries), progress: st.progress || {},
+      tier, tierLabel: TIERS[tier].label, classCode: st.classCode || '', features: TIERS[tier].features, pack: TIERS[tier].pack};
     if (action === 'sync') {
       (p.upserts || []).forEach(e => { const cur = st.entries[e.id]; if (!cur || (cur.updated || 0) <= (e.updated || 0)) st.entries[e.id] = e; });
       (p.deletes || []).forEach(id => { delete st.entries[id]; });

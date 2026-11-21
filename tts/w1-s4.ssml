@@ -1,6 +1,7 @@
-<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="zh-TW">
-  <p>dis 也是「不」或「相反」，常常放在動詞前面。appear 是出現，disappear 是不見了：<lang xml:lang="en-US">The sun disappeared behind the clouds.</lang> agree 是同意，disagree 呢？<break time="2s"/><lang xml:lang="en-US">I disagree with you about the movie.</lang></p>
-  <p>mis 的意思是「錯」。mistake 是拿錯、弄錯。換你猜 misunderstand：<break time="3s"/>理解錯了：<lang xml:lang="en-US">I think you misunderstood my question.</lang></p>
-  <p>non 的意思是「非、不是」。nonsense，沒有道理的話：<lang xml:lang="en-US">Stop talking nonsense.</lang> nonprofit，不是為了賺錢的組織。</p>
-  <p>陷阱字：discuss、distance 的 dis 不是「不」；miss 的 mis 也不是「錯」，miss 本身就是一個完整的字。</p>
+<speak xml:lang="zh-TW">
+<p>不是每個能拆的字，都一樣好懂。我們用「透明度」來描述一個字：拆開以後，零件的意思跟整個字的意思，距離有多遠。</p>
+<p>第一種是「透明」：拆了就懂。unhappy、unfair、disagree，零件加起來，就是整個字的意思。</p>
+<p>第二種是「半透明」：零件有幫助，但要想一下。discover 是 dis 加 cover，cover 是蓋住，「把蓋子拿開」就是發現。<lang xml:lang="en-US">Scientists discovered a new kind of frog.</lang> 零件給你方向，句子給你最後的意思。</p>
+<p>第三種是「不能拆」：看起來有零件，其實沒有。uncle 不是「不 cle」，understand 也不是「不足地站著」。這些字也要記到地圖上，標成「不能拆」，它們會出現在地圖的陷阱區。</p>
+<p><break time="1s"/>判斷透明度沒有標準答案，重點是你有沒有回到句子裡檢查。所以採集的時候，一定要抄下原句。</p>
 </speak>

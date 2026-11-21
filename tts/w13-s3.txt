@@ -1,9 +1,9 @@
-W4 說過，名詞字尾可以把一個動作打包成一個東西。這是學術文章最常見的寫法。現在，我們用短文裡的字練習。
+科學文章很喜歡把一個過程，打包成一個名詞。這是第八週學過的技巧，現在我們在科學文章裡用它。
 
-先看一句：The government decided to buy clean buses. 把 decided 打包成名詞，就變成 The government's decision to buy clean buses changed the city. decision 變成了主詞，後面還可以再說它帶來什麼結果。
+Cells reproduce. 細胞繁殖。打包以後，變成 the reproduction of cells。Scientists observe the cells. 打包以後，變成 an observation。
 
-再一句：The smoke was reduced. 打包以後：The reduction of smoke surprised everyone.
+為什麼科學要這樣寫？因為打包以後，過程可以變成句子的主詞，被拿來討論。Reproduction is essential for all living things. 這句話在談的，是繁殖這件事本身。
 
-換你試試：People became aware of the problem. 〔停頓 5 秒〕你可以寫成：People's awareness of the problem grew. 或是 Awareness of the problem helped the city change.
+〔停頓 1 秒〕讀科學文章時，遇到 -tion、-ment、-ance 結尾的過程名詞，就停下來還原：什麼東西，做了什麼？
 
-打包以後的句子不一定比較好讀，但它比較「學術」，因為它把事情變成可以討論、可以比較的東西。之後在學術讀寫課，你會一直用到這個技巧。
+The transformation of a caterpillar takes about two weeks. 還原：A caterpillar transforms. It takes about two weeks. 毛毛蟲會變態，這需要大約兩週。

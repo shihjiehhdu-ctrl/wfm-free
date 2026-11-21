@@ -1,24 +1,97 @@
-檔名	單元	段落	約略長度（分）
-w1-s0.mp3	W1	開場	3
-w1-s1.mp3	W1	詞素：字的最小零件	5
-w1-s2.mp3	W1	un-：不、反過來	5
-w1-s3.mp3	W1	in- / im- / il- / ir-：不	6
-w1-s4.mp3	W1	dis-、mis-、non-	5
-w1-s5.mp3	W1	單元任務	3
-w4-s0.mp3	W4	開場	2
-w4-s1.mp3	W4	-tion / -sion	7
-w4-s2.mp3	W4	-ment	6
-w4-s3.mp3	W4	-ness	5
-w4-s4.mp3	W4	為什麼要把動作打包成名詞	4
-w4-s5.mp3	W4	單元任務	3
-w9-s0.mp3	W9	開場	2
-w9-s1.mp3	W9	port：帶著東西移動	7
-w9-s2.mp3	W9	mit / mis：送出	7
-w9-s3.mp3	W9	duc / duct：引導	6
-w9-s4.mp3	W9	ject：丟	5
-w9-s5.mp3	W9	單元任務	3
-w13-s0.mp3	W13	開場	2
-w13-s1.mp3	W13	由外往內拆	6
-w13-s2.mp3	W13	讀一段短文	7
-w13-s3.mp3	W13	打包：從句子到名詞	6
-w13-s4.mp3	W13	單元任務	3
+檔名	單元	段落	用於
+w1-s0.mp3	W1	這門課怎麼上	課程版＋免費版
+w1-s1.mp3	W1	詞素：字裡面最小的意義零件	課程版＋免費版
+w1-s2.mp3	W1	un- 與 in- / im- / il- / ir-	課程版＋免費版
+w1-s3.mp3	W1	dis-、mis-、non-	課程版＋免費版
+w1-s4.mp3	W1	陷阱字與透明度	課程版＋免費版
+w1-s5.mp3	W1	本週任務：開始你的地圖	課程版＋免費版
+w2-s0.mp3	W2	這週學什麼	課程版
+w2-s1.mp3	W2	re-：再一次、回來	課程版
+w2-s2.mp3	W2	pre-、post-、fore-：之前和之後	課程版
+w2-s3.mp3	W2	ex-：向外	課程版
+w2-s4.mp3	W2	零件的意思 vs. 在這句話裡的意思	課程版
+w2-s5.mp3	W2	本週任務	課程版
+w3-s0.mp3	W3	這週學什麼	課程版
+w3-s1.mp3	W3	inter-：之間、相互	課程版
+w3-s2.mp3	W3	sub- 與 super-：在下、在上	課程版
+w3-s3.mp3	W3	trans-：跨越	課程版
+w3-s4.mp3	W3	over- 與 under-：同一個字首，兩種意思	課程版
+w3-s5.mp3	W3	本週任務與第一階段回顧	課程版
+w4-s0.mp3	W4	第二階段：轉	課程版＋免費版
+w4-s1.mp3	W4	為什麼需要名詞字尾	課程版＋免費版
+w4-s2.mp3	W4	-tion / -sion	課程版＋免費版
+w4-s3.mp3	W4	-ment	課程版＋免費版
+w4-s4.mp3	W4	-ness	課程版＋免費版
+w4-s5.mp3	W4	本週任務：讓詞性表出現第一列	課程版＋免費版
+w5-s0.mp3	W5	這週學什麼	課程版
+w5-s1.mp3	W5	-ity：性質	課程版
+w5-s2.mp3	W5	-ance / -ence：狀態	課程版
+w5-s3.mp3	W5	-er / -or / -ist：做這件事的人	課程版
+w5-s4.mp3	W5	一個字族，好幾個名詞	課程版
+w5-s5.mp3	W5	本週任務	課程版
+w6-s0.mp3	W6	這週學什麼	課程版
+w6-s1.mp3	W6	-al：與…有關的	課程版
+w6-s2.mp3	W6	-ive：有…傾向的	課程版
+w6-s3.mp3	W6	-ous、-ful、-less	課程版
+w6-s4.mp3	W6	-able / -ible：能被…的	課程版
+w6-s5.mp3	W6	本週任務	課程版
+w7-s0.mp3	W7	這週學什麼	課程版
+w7-s1.mp3	W7	-ize：使成為	課程版
+w7-s2.mp3	W7	-ify：使…化	課程版
+w7-s3.mp3	W7	-en 與 en- / em-	課程版
+w7-s4.mp3	W7	-ate 與 -ly	課程版
+w7-s5.mp3	W7	本週任務	課程版
+w8-s0.mp3	W8	這週學什麼	課程版
+w8-s1.mp3	W8	拼字的變化	課程版
+w8-s2.mp3	W8	母音與重音的變化	課程版
+w8-s3.mp3	W8	打包與還原	課程版
+w8-s4.mp3	W8	第二階段回顧：一個字族，四種詞性	課程版
+w8-s5.mp3	W8	本週任務	課程版
+w9-s0.mp3	W9	第三階段：根	課程版＋免費版
+w9-s1.mp3	W9	port：帶著東西移動	課程版＋免費版
+w9-s2.mp3	W9	mit / mis：送出	課程版＋免費版
+w9-s3.mp3	W9	duc / duct：帶領	課程版＋免費版
+w9-s4.mp3	W9	ject：丟、拋	課程版＋免費版
+w9-s5.mp3	W9	本週任務	課程版＋免費版
+w10-s0.mp3	W10	這週學什麼	課程版
+w10-s1.mp3	W10	spec / spect：看	課程版
+w10-s2.mp3	W10	vis / vid：看	課程版
+w10-s3.mp3	W10	dict：說　scrib / script：寫	課程版
+w10-s4.mp3	W10	aud：聽，以及同義字根	課程版
+w10-s5.mp3	W10	本週任務	課程版
+w11-s0.mp3	W11	這週學什麼	課程版
+w11-s1.mp3	W11	struct：建造	課程版
+w11-s2.mp3	W11	fac / fect / fic：做	課程版
+w11-s3.mp3	W11	form：形狀	課程版
+w11-s4.mp3	W11	tract：拉	課程版
+w11-s5.mp3	W11	本週任務	課程版
+w12-s0.mp3	W12	這週學什麼	課程版
+w12-s1.mp3	W12	bio：生命　geo：土地	課程版
+w12-s2.mp3	W12	graph / gram：寫、畫　logy / log：學問、話語	課程版
+w12-s3.mp3	W12	micro：小　tele：遠　phon：聲音	課程版
+w12-s4.mp3	W12	語意漂移與透明度光譜	課程版
+w12-s5.mp3	W12	本週任務與第三階段回顧	課程版
+w13-s0.mp3	W13	第四階段：用	課程版
+w13-s1.mp3	W13	由外往內拆	課程版
+w13-s2.mp3	W13	讀一篇科學短文	課程版
+w13-s3.mp3	W13	科學喜歡過程名詞	課程版
+w13-s4.mp3	W13	科學文章裡的詞素地圖	課程版
+w13-s5.mp3	W13	本週任務	課程版
+w14-s0.mp3	W14	這週學什麼	課程版＋免費版
+w14-s1.mp3	W14	由外往內拆：社會科的長字	課程版＋免費版
+w14-s2.mp3	W14	讀一篇社會科短文	課程版＋免費版
+w14-s3.mp3	W14	打包與還原：是誰做了什麼	課程版＋免費版
+w14-s4.mp3	W14	社會科文章裡的詞素地圖	課程版＋免費版
+w14-s5.mp3	W14	本週任務	課程版＋免費版
+w15-s0.mp3	W15	最後一週	課程版
+w15-s1.mp3	W15	四個階段，一張地圖	課程版
+w15-s2.mp3	W15	幫你的地圖做健康檢查	課程版
+w15-s3.mp3	W15	用地圖寫作	課程版
+w15-s4.mp3	W15	十五週之後	課程版
+w15-s5.mp3	W15	最後的任務	課程版
+free-w1-s0.mp3	W1	這門課怎麼上	免費版
+free-w1-s5.mp3	W1	本週任務：開始你的地圖	免費版
+free-w4-s5.mp3	W4	本週任務：讓詞性表出現第一列	免費版
+free-w9-s5.mp3	W9	本週任務	免費版
+free-w14-s0.mp3	W14	這週學什麼	免費版
+free-w14-s5.mp3	W14	本週任務	免費版

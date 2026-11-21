@@ -1,9 +1,11 @@
-先看三個你一定認得的字：report、support、airport。它們都藏著同一個零件：port。〔停頓 2 秒〕
+port 的意思是「帶著東西移動」。你最熟悉的是 airport，飛機把人和貨物帶來帶去的地方。
 
-port 的核心畫面是「帶著東西移動」。我們拆拆看。re 是「回」，report 就是把消息帶回來：The reporter reported the news. support 的 sup 是 sub 的變形，「在下面」；從下面撐著、扛著：Strong legs support your body.
+現在你可以把第一階段的字首加回來了。ex 是向外，export 是往外運，出口；im 是向內，import 是往內運，進口；trans 是跨越，transport 是從這裡運到那裡。
 
-現在換你猜。ex 是「向外」，那 export 呢？〔停頓 3 秒〕往外搬運，把東西搬出這個國家：The island exports bananas. 那 import 呢？〔停頓 3 秒〕往內搬，把東西搬進來：We import oil from other countries.
+再加上第二階段的字尾：transport 加 -ation，變成 transportation，運輸這件事。Public transportation in Taipei is cheap and convenient. 這個長長的字，現在每一塊都認得了。
 
-airport 比較特別。這裡的 port 比較接近「港口」，也就是貨物和人進出的地方。它和「搬運」是親戚，但不完全一樣，所以 airport 是半透明的字：拆得開，但要多想一步。
+-able 是能被…的，portable 就是「能被帶著走的」，可攜帶的。She bought a portable speaker for the trip.
 
-最後兩個陷阱：portion 和 portrait。它們看起來有 port，卻來自別的字根，和搬運無關。聽聽它們在句子裡的樣子：She ate a small portion of the cake. A portrait of the king hangs on the wall. 遇到這種字，不要硬拆。
+report 和 support 就要轉一下了。report 是 re 加 port，「把消息帶回來」，所以是報告。support 是 sup 加 port，「在下面撐著、扛著」，所以是支持。My parents support my decision.
+
+〔停頓 1 秒〕陷阱字：portion 和 portrait 的 port 不是「帶著移動」，它們來自別的字根。important 和 opportunity 雖然有 port，但意思已經轉得太遠，先標成不能拆或半透明。

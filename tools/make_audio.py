@@ -1,213 +1,138 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+"""把 tts/*.txt 的講解稿轉成 mp3，放到 site/audio/。
+
+需要：
+    pip3 install lameenc
+
+OpenAI（預設）：
+    export OPENAI_API_KEY=sk-...
+    python3 tools/make_audio.py
+
+ElevenLabs（用你自己的 clone voice）：
+    export ELEVENLABS_API_KEY=...
+    （聲音預設是 GHmfFNuBXAsbRXWO5lcA；要換別的聲音，設定 ELEVENLABS_VOICE_ID 或加 --voice）
+    python3 tools/make_audio.py --provider elevenlabs
+
+常用選項：
+    --only w1-s0,w1-s1     只做這幾段（檔名不含 .mp3）
+    --unit 3               只做 W3
+    --force                已經有 mp3 的也重做（預設會跳過）
+    --dry                  只列出要做哪些檔案，不呼叫 API
+
+金鑰只放在環境變數，不要寫進這個檔案，也不要放上 GitHub。
 """
-用 OpenAI TTS 產生「我的詞族地圖」各段講解的 mp3。
+import argparse, json, os, pathlib, re, sys, time, urllib.request, urllib.error
 
-讀取：site/content/free.json（每一段的 script）
-輸出：site/audio/<段落 id>.mp3，例如 site/audio/w1-s1.mp3
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+TTS, OUT = ROOT / 'tts', ROOT / 'site' / 'audio'
+ELEVEN_VOICE_ID = 'GHmfFNuBXAsbRXWO5lcA'          # ElevenLabs 預設聲音；環境變數 ELEVENLABS_VOICE_ID 或 --voice 可以覆蓋
+ELEVEN_MODEL = 'eleven_v4'                       # 這個 PVC 聲音是為 v4 微調的
+ELEVEN_SETTINGS = {'stability': 0.5, 'similarity_boost': 0.75, 'clone_strength': 0.75}   # v4 沒有 style、speed
+RATE = 24000                                     # 兩家都用 24 kHz、16-bit、單聲道 PCM
+PAUSE = re.compile(r'〔停頓\s*([\d.]+)\s*秒〕')
+PARA_GAP = 0.7                                   # 段落之間的停頓（秒）
 
-處理方式
-  - 〔停頓 N 秒〕 → 在音檔裡插入 N 秒靜音（TTS 本身不支援停頓標記）
-  - *English sentence* → 去掉星號；預設和中文一起唸，靠 instructions 要求英文用清楚的美式發音
-    加上 --split-english 時，英文例句會單獨產生，用另一組 instructions（稍慢、清楚）
-  - 每一段落之間插入 0.6 秒靜音
-  - 向 API 要 PCM（24 kHz、16-bit、單聲道），接好之後再轉成 mp3
+OPENAI_STYLE = ('用台灣華語、溫和清楚的老師口吻，對小學高年級到國中的學生講解英文字的組成。'
+                '語速稍慢；遇到英文單字和英文句子，用自然的美式英語發音唸出來。')
 
-安裝
-  pip install openai lameenc
+def silence(sec):
+    return b'\x00\x00' * int(RATE * sec)
 
-使用
-  export OPENAI_API_KEY=sk-...           # Windows: set OPENAI_API_KEY=sk-...
-  python3 tools/make_audio.py --list               # 列出所有段落
-  python3 tools/make_audio.py --only w1-s1         # 先產生一段試聽
-  python3 tools/make_audio.py                      # 產生所有還沒有的音檔
-  python3 tools/make_audio.py --force              # 全部重新產生
-  python3 tools/make_audio.py --dry-run            # 只顯示會送出的文字，不呼叫 API
-"""
-import argparse, json, os, re, sys, time
-from pathlib import Path
+def post(url, headers, body, retries=3):
+    data = json.dumps(body).encode('utf-8')
+    for k in range(retries):
+        req = urllib.request.Request(url, data=data, headers=headers, method='POST')
+        try:
+            with urllib.request.urlopen(req, timeout=180) as r:
+                return r.read()
+        except urllib.error.HTTPError as e:
+            msg = e.read().decode('utf-8', 'replace')[:400]
+            if e.code in (429, 500, 502, 503) and k < retries - 1:
+                time.sleep(4 * (k + 1)); continue
+            sys.exit(f'API 錯誤 {e.code}：{msg}')
+        except urllib.error.URLError as e:
+            if k < retries - 1: time.sleep(4); continue
+            sys.exit(f'連不上 API：{e}')
 
-ROOT = Path(__file__).resolve().parent.parent
-CONTENT = ROOT / 'site' / 'content' / 'free.json'
-OUT_DIR = ROOT / 'site' / 'audio'
+def say_openai(text, prev, nxt, args):
+    key = os.environ.get('OPENAI_API_KEY') or sys.exit('請先設定 OPENAI_API_KEY')
+    return post('https://api.openai.com/v1/audio/speech',
+                {'Authorization': f'Bearer {key}', 'Content-Type': 'application/json'},
+                {'model': args.model or 'gpt-4o-mini-tts', 'voice': args.voice or 'coral', 'input': text,
+                 'instructions': OPENAI_STYLE, 'response_format': 'pcm', 'speed': args.speed})
 
-RATE = 24000                 # OpenAI PCM 輸出：24 kHz, 16-bit signed little-endian, mono
-PARA_GAP = 0.6               # 段落之間的靜音（秒）
-MAX_CHARS = 1200             # 單次送出的字數上限，太長會自動在句號切開
+def say_eleven(text, prev, nxt, args):
+    key = os.environ.get('ELEVENLABS_API_KEY') or sys.exit('請先設定 ELEVENLABS_API_KEY')
+    voice = args.voice or os.environ.get('ELEVENLABS_VOICE_ID') or ELEVEN_VOICE_ID
+    model = args.model or ELEVEN_MODEL
+    settings = dict(ELEVEN_SETTINGS)
+    if not model.startswith('eleven_v4'):            # 舊模型才有 speed
+        settings.pop('clone_strength', None); settings['speed'] = args.speed
+    body = {'text': text, 'model_id': model, 'voice_settings': settings}
+    if prev: body['previous_text'] = prev[-500:]          # 前後文讓語調接得順
+    if nxt: body['next_text'] = nxt[:500]
+    return post(f'https://api.elevenlabs.io/v1/text-to-speech/{voice}?output_format=pcm_24000',
+                {'xi-api-key': key, 'Content-Type': 'application/json', 'Accept': 'audio/pcm'}, body)
 
-ZH_INSTRUCTIONS = (
-    "你是一位溫和、清楚的英文老師，正在為國小高年級到國中的學生錄製單字課程講解。"
-    "用台灣華語（不是中國大陸口音）說中文，語速適中、自然，像在和學生面對面說話，不要像播新聞。"
-    "遇到英文單字和英文句子時，用清楚、自然的美式英語發音，英文句子稍微放慢。"
-    "提問的地方語氣上揚，像在邀請學生想一想。"
-)
-EN_INSTRUCTIONS = (
-    "Read this English example sentence clearly and naturally in General American English, "
-    "slightly slower than normal conversation, for young learners of English."
-)
-
-PAUSE_RE = re.compile(r'〔停頓\s*(\d+(?:\.\d+)?)\s*秒〕')
-EN_RE = re.compile(r'\*(.+?)\*')
-
-
-def load_segments():
-    pack = json.loads(CONTENT.read_text(encoding='utf-8'))
-    for u in pack['units']:
-        for s in u['segments']:
-            yield u['unit'], s
-
-
-def plan(script, split_english):
-    """把一段講解稿切成要送出的片段與靜音：[('tts', text, instructions) | ('gap', seconds)]"""
-    items = []
-    for i, para in enumerate(script):
-        if i and not (items and items[-1][0] == 'gap'):
-            items.append(('gap', PARA_GAP))
-        parts = PAUSE_RE.split(para)          # 文字, 秒數, 文字, 秒數, ...
-        for k, part in enumerate(parts):
-            if k % 2 == 1:
-                items.append(('gap', float(part)))
-                continue
-            text = part.strip()
-            if not text:
-                continue
-            if split_english:
-                runs = EN_RE.split(text)      # 中文, 英文, 中文, ...
-                for j, run in enumerate(runs):
-                    run = run.strip()
-                    if not run:
-                        continue
-                    if j % 2 == 1:
-                        items.append(('tts', run, EN_INSTRUCTIONS))
-                    else:
-                        items.extend(('tts', c, ZH_INSTRUCTIONS) for c in chunk(run))
-            else:
-                items.extend(('tts', c, ZH_INSTRUCTIONS) for c in chunk(EN_RE.sub(r'\1', text)))
-    return merge_tts(items)
-
-
-def chunk(text):
-    if len(text) <= MAX_CHARS:
-        return [text]
-    out, buf = [], ''
-    for sent in re.split(r'(?<=[。！？!?])', text):
-        if len(buf) + len(sent) > MAX_CHARS and buf:
-            out.append(buf)
-            buf = ''
-        buf += sent
-    if buf:
-        out.append(buf)
+def pieces(txt):
+    """把講解稿切成要唸的片段和停頓：[('say', 文字) | ('gap', 秒)]"""
+    out = []
+    for para in [p.strip() for p in txt.split('\n\n') if p.strip()]:
+        pos = 0
+        for m in PAUSE.finditer(para):
+            seg = para[pos:m.start()].strip()
+            if seg: out.append(('say', seg))
+            out.append(('gap', float(m.group(1))))
+            pos = m.end()
+        seg = para[pos:].strip()
+        if seg: out.append(('say', seg))
+        out.append(('gap', PARA_GAP))
     return out
 
-
-def merge_tts(items):
-    """相鄰、同一組 instructions 的文字片段合併成一次 API 呼叫（語調比較連貫）。"""
-    merged = []
-    for it in items:
-        if (merged and it[0] == 'tts' and merged[-1][0] == 'tts' and merged[-1][2] == it[2]
-                and len(merged[-1][1]) + len(it[1]) < MAX_CHARS):
-            merged[-1] = ('tts', merged[-1][1] + ' ' + it[1], it[2])
-        else:
-            merged.append(it)
-    return merged
-
-
-def silence(seconds):
-    return b'\x00\x00' * int(RATE * seconds)
-
-
-def tts_pcm(client, text, instructions, model, voice, speed, retries=4):
-    for attempt in range(retries):
-        try:
-            kwargs = dict(model=model, voice=voice, input=text, response_format='pcm')
-            if model.startswith('gpt-'):
-                kwargs['instructions'] = instructions
-            if speed != 1.0:
-                kwargs['speed'] = speed
-            with client.audio.speech.with_streaming_response.create(**kwargs) as resp:
-                return resp.read()
-        except Exception as e:                      # 網路或限流錯誤：等一下再試
-            if attempt == retries - 1:
-                raise
-            wait = 2 ** attempt * 3
-            print(f'    API 錯誤：{e}；{wait} 秒後重試', file=sys.stderr)
-            time.sleep(wait)
-
-
-def pcm_to_mp3(pcm, path, bitrate):
+def make(name, args, say):
     import lameenc
+    txt = (TTS / f'{name}.txt').read_text(encoding='utf-8')
+    ps = pieces(txt)
+    says = [t for k, t in ps if k == 'say']
+    pcm, i = bytearray(silence(0.3)), 0
+    for k, v in ps:
+        if k == 'gap': pcm += silence(v); continue
+        prev = ' '.join(says[:i])[-500:]; nxt = ' '.join(says[i + 1:])[:500]; i += 1
+        pcm += say(v, prev, nxt, args)
     enc = lameenc.Encoder()
-    enc.set_bit_rate(bitrate)
-    enc.set_in_sample_rate(RATE)
-    enc.set_channels(1)
-    enc.set_quality(2)
-    data = enc.encode(pcm) + enc.flush()
-    tmp = path.with_suffix('.mp3.part')
-    tmp.write_bytes(data)
-    tmp.replace(path)
-
+    enc.set_bit_rate(64); enc.set_in_sample_rate(RATE); enc.set_channels(1); enc.set_quality(2)
+    mp3 = enc.encode(bytes(pcm)) + enc.flush()
+    (OUT / f'{name}.mp3').write_bytes(mp3)
+    return len(pcm) / 2 / RATE
 
 def main():
-    ap = argparse.ArgumentParser(description='用 OpenAI TTS 產生詞族地圖的講解音檔')
-    ap.add_argument('--only', nargs='*', help='只產生這些段落，例如 --only w1-s1 w4-s2；也可以寫 w13 代表整個單元')
-    ap.add_argument('--force', action='store_true', help='已經有的音檔也重新產生')
-    ap.add_argument('--dry-run', action='store_true', help='只顯示要送出的文字，不呼叫 API')
-    ap.add_argument('--list', action='store_true', help='列出所有段落和音檔狀態')
-    ap.add_argument('--split-english', action='store_true', help='英文例句單獨產生，用英文的 instructions')
-    ap.add_argument('--model', default='gpt-4o-mini-tts')
-    ap.add_argument('--voice', default='marin', help='例如 marin、cedar、coral、sage、nova')
-    ap.add_argument('--speed', type=float, default=1.0, help='0.25–4.0，預設 1.0')
-    ap.add_argument('--bitrate', type=int, default=64, help='mp3 位元率 kbps，語音用 64 就夠')
+    ap = argparse.ArgumentParser(description='產生講解語音')
+    ap.add_argument('--provider', choices=['openai', 'elevenlabs'], default='openai')
+    ap.add_argument('--voice', help='OpenAI 聲音名稱（預設 coral），或 ElevenLabs voice ID')
+    ap.add_argument('--model', help='預設 gpt-4o-mini-tts／eleven_v4')
+    ap.add_argument('--speed', type=float, default=0.95)
+    ap.add_argument('--only', help='逗號分隔的檔名，例如 w1-s0,w1-s1')
+    ap.add_argument('--unit', type=int, help='只做某一週，例如 3')
+    ap.add_argument('--force', action='store_true')
+    ap.add_argument('--dry', action='store_true')
     args = ap.parse_args()
-
-    segs = list(load_segments())
-    if args.only:
-        want = set(args.only)
-        segs = [(u, s) for u, s in segs if s['id'] in want or s['id'].split('-')[0] in want]
-        if not segs:
-            sys.exit('找不到指定的段落。用 --list 看所有段落 id。')
-
-    if args.list:
-        for u, s in segs:
-            f = OUT_DIR / f"{s['id']}.mp3"
-            print(f"{s['id']:8}  W{u:<3} {s['title']:<18} {'✓ ' + str(f.stat().st_size // 1024) + ' KB' if f.exists() else '—'}")
-        return
-
-    client = None
-    if not args.dry_run:
-        if not os.environ.get('OPENAI_API_KEY'):
-            sys.exit('請先設定環境變數 OPENAI_API_KEY。')
-        try:
-            from openai import OpenAI
-            import lameenc  # noqa: F401
-        except ImportError:
-            sys.exit('請先安裝：pip install openai lameenc')
-        client = OpenAI()
-
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
-    done = skipped = 0
-    for u, s in segs:
-        out = OUT_DIR / f"{s['id']}.mp3"
-        if out.exists() and not args.force and not args.dry_run:
-            skipped += 1
-            continue
-        items = plan(s['script'], args.split_english)
-        calls = sum(1 for it in items if it[0] == 'tts')
-        print(f"[W{u}] {s['id']} {s['title']}（{calls} 次 API 呼叫）")
-        if args.dry_run:
-            for it in items:
-                print(f"    {'〔靜音 %.1f 秒〕' % it[1] if it[0] == 'gap' else ('EN│' if it[2] is EN_INSTRUCTIONS else 'ZH│') + it[1]}")
-            continue
-        pcm = bytearray(silence(0.3))
-        for it in items:
-            pcm += silence(it[1]) if it[0] == 'gap' else tts_pcm(client, it[1], it[2], args.model, args.voice, args.speed)
-        pcm += silence(0.5)
-        pcm_to_mp3(bytes(pcm), out, args.bitrate)
-        print(f"    → {out.relative_to(ROOT)}  {len(pcm) / 2 / RATE:.0f} 秒")
-        done += 1
-    if not args.dry_run:
-        print(f'完成：產生 {done} 個，略過已存在的 {skipped} 個。')
-
+    if not args.dry:
+        try: import lameenc  # noqa
+        except ImportError: sys.exit('請先安裝：pip3 install lameenc')
+    OUT.mkdir(parents=True, exist_ok=True)
+    names = sorted(p.stem for p in TTS.glob('*.txt'))
+    if args.only: names = [n for n in names if n in set(args.only.split(','))]
+    if args.unit: names = [n for n in names if re.match(rf'^(free-)?w{args.unit}-', n)]
+    todo = [n for n in names if args.force or not (OUT / f'{n}.mp3').exists()]
+    print(f'{len(todo)} 個檔案要產生（共 {len(names)} 個，已存在的跳過）')
+    if args.dry:
+        print('\n'.join(todo)); return
+    say = say_openai if args.provider == 'openai' else say_eleven
+    for n in todo:
+        t0 = time.time()
+        sec = make(n, args, say)
+        print(f'  {n}.mp3  {sec/60:.1f} 分鐘  （{time.time()-t0:.0f} 秒）')
+    print('完成。把 site/audio/ 裡的 mp3 一起上傳到 GitHub，Netlify 重新部署後就會生效。')
 
 if __name__ == '__main__':
     main()

@@ -1,0 +1,967 @@
+<title>拆開英文字｜詞素課</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700;900&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+
+/* Layout: same system as the academic-literacy LP — ink hero with a live "specimen" card, alternating paper / mist / ink bands, mono for morphemes.
+   Everything is scoped under .mph-page so it can be pasted into the WordPress page without leaking styles. */
+.mph-page{
+  --ink:#08333B; --ink-2:#0B4048; --teal:#1C7293; --teal-deep:#114B5F;
+  --amber:#E8A33D; --amber-deep:#B87613; --seafoam:#2A9D8F; --coral:#C1495B;
+  --paper:#FFFFFF; --mist:#EDF4F4; --mist-2:#F5F9F9; --line:#D7E4E5;
+  --text:#16323A; --muted:#5C7077; --white:#FFFFFF; --on-ink:#C4D7DB; --on-ink-2:#8FB2B9;
+  --display:"Noto Serif TC", Georgia, "Songti TC", serif;
+  --body:-apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --wrap:1180px;
+  font-family:var(--body);color:var(--text);background:var(--paper);
+  line-height:1.75;-webkit-font-smoothing:antialiased;font-size:17px;
+}
+body{background:#FFFFFF;margin:0}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:#08333B}
+.mph-page *{box-sizing:border-box;margin:0;padding:0}
+.mph-page a{color:inherit;text-decoration:none}
+.mph-page a:focus-visible,.mph-page button:focus-visible{outline:2px solid var(--amber);outline-offset:3px;border-radius:6px}
+.mph-page h1,.mph-page h2,.mph-page h3,.mph-page h4{font-family:var(--display);font-weight:700;line-height:1.3;letter-spacing:.01em;text-wrap:balance}
+.mph-page .wrap{max-width:var(--wrap);margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.mph-page .eyebrow{font-family:var(--mono);font-size:.74rem;letter-spacing:.22em;text-transform:uppercase;color:var(--amber-deep);font-weight:500}
+.mph-page .mono{font-family:var(--mono)}
+.mph-page .m{font-family:var(--mono);font-weight:600;color:var(--amber-deep)}
+
+/* nav */
+.mph-page .lp-nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:rgba(8,51,59,.94);backdrop-filter:blur(8px);border-bottom:1px solid rgba(255,255,255,.08)}
+.mph-page .lp-nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:64px}
+.mph-page .brand{font-family:var(--display);font-weight:700;color:#fff;font-size:1.05rem;letter-spacing:.02em;line-height:1.3}
+.mph-page .brand small{display:block;font-family:var(--mono);font-size:.6rem;letter-spacing:.2em;color:var(--amber);font-weight:400;text-transform:uppercase;margin-top:2px}
+.mph-page .navlinks{display:flex;gap:24px;align-items:center}
+.mph-page .navlinks a{color:#CFE0E4;font-size:.92rem;transition:color .2s}
+.mph-page .navlinks a:hover{color:#fff}
+.mph-page .nav-cta{background:var(--amber);color:var(--ink)!important;padding:9px 18px;border-radius:999px;font-weight:700;font-size:.9rem;white-space:nowrap;transition:transform .15s,background .2s}
+.mph-page .nav-cta:hover{transform:translateY(-1px);background:#F2B457}
+
+/* hero */
+.mph-page .hero{background:var(--ink);color:#fff;position:relative;overflow:hidden}
+.mph-page .hero::before{content:"";position:absolute;inset:0;background:radial-gradient(1100px 520px at 88% -8%, rgba(28,114,147,.42), transparent 60%);pointer-events:none}
+.mph-page .hero .wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center;padding-block:84px 92px;position:relative}
+.mph-page .hero h1{font-size:clamp(2.1rem,4.4vw,3.3rem);font-weight:900;color:#fff;letter-spacing:.005em;margin-top:18px}
+.mph-page .hero h1 .hl{color:var(--amber)}
+.mph-page .hero-sub{color:var(--on-ink);font-size:1.08rem;margin-top:24px;max-width:34em}
+.mph-page .hero-sub em{font-style:normal;font-family:var(--mono);color:#E7F0F1;font-size:.95em}
+.mph-page .hero-meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:30px}
+.mph-page .tag{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;color:#CFE0E4;border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:6px 13px}
+.mph-page .hero-cta{display:flex;gap:14px;flex-wrap:wrap;margin-top:34px}
+.mph-page .btn{display:inline-flex;align-items:center;gap:8px;padding:14px 26px;border-radius:999px;font-weight:700;font-size:1rem;transition:transform .15s,box-shadow .2s,background .2s;cursor:pointer;border:none;font-family:var(--body)}
+.mph-page .btn-primary{background:var(--amber);color:var(--ink);box-shadow:0 8px 24px -8px rgba(232,163,61,.6)}
+.mph-page .btn-primary:hover{transform:translateY(-2px);background:#F2B457}
+.mph-page .btn-ghost{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.34)}
+.mph-page .btn-ghost:hover{border-color:#fff;background:rgba(255,255,255,.06)}
+
+/* specimen: one word taken apart */
+.mph-page .specimen{background:var(--ink-2);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:28px 28px 24px;position:relative;min-width:0}
+.mph-page .specimen-h{font-family:var(--mono);font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;color:var(--on-ink-2);margin-bottom:20px}
+.mph-page .thread{position:absolute;left:44px;top:72px;bottom:96px;width:2px;background:linear-gradient(var(--amber),rgba(232,163,61,.15))}
+.mph-page .step{position:relative;padding-left:44px;padding-bottom:20px;animation:mph-rise .6s both}
+.mph-page .step:nth-of-type(2){animation-delay:.15s}
+.mph-page .step:nth-of-type(3){animation-delay:.6s}
+.mph-page .step:nth-of-type(4){animation-delay:1.05s}
+.mph-page .step:nth-of-type(5){animation-delay:1.5s}
+.mph-page .dot{position:absolute;left:8px;top:5px;width:16px;height:16px;border-radius:50%;background:var(--ink-2);border:2px solid var(--amber)}
+.mph-page .step.on .dot{background:var(--amber)}
+.mph-page .lab{font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;color:var(--amber);text-transform:uppercase;margin-bottom:5px}
+.mph-page .sent{font-family:var(--mono);font-size:.94rem;line-height:1.6;color:#E7F0F1;overflow-wrap:anywhere}
+.mph-page .sent .dim{color:#7FA0A7}
+.mph-page .sent b{color:var(--amber);font-weight:600}
+.mph-page .parts{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.mph-page .part{font-family:var(--mono);font-size:1rem;font-weight:600;padding:4px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.18);color:#E7F0F1}
+.mph-page .part.root{background:var(--amber);color:var(--ink);border-color:var(--amber)}
+.mph-page .part small{display:block;font-weight:400;font-size:.66rem;letter-spacing:.06em;opacity:.8;font-family:var(--body)}
+.mph-page .result{margin-top:4px;border-top:1px dashed rgba(255,255,255,.18);padding-top:14px;font-family:var(--mono);color:#E7F0F1;font-size:1.05rem}
+.mph-page .result b{color:var(--amber)}
+.mph-page .result span{display:block;font-family:var(--body);font-size:.82rem;color:var(--on-ink-2);margin-top:2px}
+@keyframes mph-rise{from{opacity:.25;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.mph-page .step{animation:none}.mph-page *{transition:none!important}}
+
+/* sections */
+.mph-page section{padding-block:92px}
+.mph-page section[id]{scroll-margin-top:78px}
+.mph-page .sec-head{max-width:42em}
+.mph-page .sec-head .eyebrow{display:block;margin-bottom:14px}
+.mph-page h2{font-size:clamp(1.65rem,3vw,2.3rem);color:var(--ink)}
+.mph-page .lead{font-size:1.1rem;color:var(--muted);margin-top:18px;max-width:38em}
+.mph-page .alt{background:var(--mist)}
+.mph-page .ink-sec{background:var(--ink);color:#fff}
+.mph-page .ink-sec h2{color:#fff}.mph-page .ink-sec .lead{color:#B7CDD1}
+.mph-page .ink-sec .eyebrow{color:var(--amber)}
+
+/* why: three evidence cards */
+.mph-page .cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:44px}
+.mph-page .card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:26px;min-width:0}
+.mph-page .card .k{font-family:var(--mono);font-weight:500;color:var(--seafoam);font-size:.78rem;letter-spacing:.1em;text-transform:uppercase}
+.mph-page .card h3{font-size:1.15rem;color:var(--ink);margin:8px 0 12px}
+.mph-page .card p{color:var(--muted);font-size:.96rem}
+.mph-page .card .big{font-family:var(--display);font-weight:900;font-size:2.4rem;color:var(--ink);line-height:1.1;font-variant-numeric:tabular-nums}
+.mph-page .card .big small{font-size:.9rem;font-weight:700;color:var(--muted);margin-left:6px;font-family:var(--body)}
+.mph-page .trap-row{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 12px}
+.mph-page .trap{font-family:var(--mono);font-size:.86rem;padding:3px 10px;border-radius:999px;background:#FBEDEF;color:var(--coral);border:1px solid #F1C7CE;text-decoration:line-through;text-decoration-thickness:1px}
+.mph-page .punch{margin-top:36px;font-family:var(--display);font-size:clamp(1.25rem,2.4vw,1.7rem);font-weight:700;color:var(--ink);line-height:1.55;max-width:30em}
+.mph-page .punch .amber{color:var(--amber-deep)}
+
+/* goals + fit */
+.mph-page .goals{display:grid;grid-template-columns:1.1fr .9fr;gap:48px;margin-top:44px;align-items:start}
+.mph-page .goal-list{list-style:none;display:flex;flex-direction:column;gap:24px}
+.mph-page .goal-list li{display:flex;gap:16px}
+.mph-page .goal-list .gk{flex:0 0 auto;width:12px;height:12px;border-radius:3px;background:var(--amber);margin-top:9px}
+.mph-page .goal-list h3{font-size:1.08rem;color:var(--ink);margin-bottom:4px}
+.mph-page .goal-list p{color:var(--muted);font-size:.98rem}
+.mph-page .goal-list .ex{font-family:var(--mono);font-size:.86rem;color:var(--teal-deep);margin-top:6px;overflow-wrap:anywhere}
+.mph-page .fit{background:var(--mist-2);border:1px solid var(--line);border-radius:16px;padding:28px}
+.mph-page .fit h3{font-size:1rem;color:var(--teal-deep);margin-bottom:16px;font-family:var(--body);font-weight:700}
+.mph-page .fit .fit-lead{font-size:.92rem;color:var(--muted);margin-bottom:14px}
+.mph-page .fit ul{list-style:none;display:flex;flex-direction:column;gap:12px}
+.mph-page .fit li{padding-left:24px;position:relative;font-size:.96rem;color:var(--text)}
+.mph-page .fit li::before{content:"→";position:absolute;left:0;color:var(--amber-deep);font-family:var(--mono)}
+
+/* route: known -> morpheme -> academic */
+.mph-page .route{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:14px;align-items:stretch;margin-top:44px}
+.mph-page .rbox{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:22px;min-width:0}
+.mph-page .rbox.mid{background:var(--ink);border-color:var(--ink);color:#fff}
+.mph-page .rbox .rn{font-family:var(--mono);font-size:.74rem;letter-spacing:.14em;color:var(--amber-deep);text-transform:uppercase}
+.mph-page .rbox.mid .rn{color:var(--amber)}
+.mph-page .rbox h3{font-size:1.05rem;margin:6px 0 10px;color:var(--ink)}
+.mph-page .rbox.mid h3{color:#fff}
+.mph-page .rbox .words{font-family:var(--mono);font-size:.92rem;line-height:1.8;color:var(--text);overflow-wrap:anywhere}
+.mph-page .rbox.mid .words{color:#E7F0F1}
+.mph-page .rbox.mid .words b{color:var(--amber)}
+.mph-page .rarrow{display:flex;align-items:center;justify-content:center;font-family:var(--mono);color:var(--amber-deep);font-size:1.4rem}
+
+/* stages */
+.mph-page .versions{display:flex;margin-top:44px;align-items:stretch;flex-wrap:wrap;background:var(--paper);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.mph-page .vstep{flex:1 1 0;min-width:200px;position:relative;padding:24px 22px}
+.mph-page .vstep + .vstep{border-left:1px solid var(--line)}
+.mph-page .vstep.hi{background:#FDF6EA}
+.mph-page .vstep .vn{font-family:var(--mono);font-weight:600;color:var(--amber-deep);font-size:.8rem;letter-spacing:.1em}
+.mph-page .vstep .vt{font-family:var(--display);font-weight:900;font-size:1.6rem;color:var(--ink);margin:4px 0 2px}
+.mph-page .vstep .ve{font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+.mph-page .vstep .vd{font-size:.92rem;color:var(--muted);margin-top:10px}
+.mph-page .note{margin-top:18px;font-size:.92rem;color:var(--muted)}
+
+/* rhythm */
+.mph-page .pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:44px}
+.mph-page .pillar{border-radius:16px;padding:26px;border:1px solid var(--line);background:var(--paper)}
+.mph-page .pillar .pct{font-family:var(--display);font-weight:900;font-size:2rem;color:var(--ink);font-variant-numeric:tabular-nums}
+.mph-page .pillar .pct small{font-size:.95rem;font-weight:700;margin-left:4px}
+.mph-page .pillar .pn{font-weight:700;margin:6px 0;color:var(--teal-deep)}
+.mph-page .pillar .pd{font-size:.94rem;color:var(--muted)}
+.mph-page .pillar.hi{background:var(--ink);border-color:var(--ink)}
+.mph-page .pillar.hi .pct{color:var(--amber)}.mph-page .pillar.hi .pn{color:#fff}.mph-page .pillar.hi .pd{color:#B7CDD1}
+.mph-page .bar{display:flex;height:14px;border-radius:999px;overflow:hidden;margin-top:30px}
+.mph-page .bar span:nth-child(1){flex:30;background:var(--teal-deep)}
+.mph-page .bar span:nth-child(2){flex:70;background:var(--seafoam)}
+.mph-page .bar span:nth-child(3){flex:60;background:var(--amber)}
+.mph-page .bar-legend{display:flex;gap:22px;flex-wrap:wrap;margin-top:10px;font-family:var(--mono);font-size:.78rem;color:var(--muted)}
+.mph-page .bar-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+
+/* curriculum */
+.mph-page .stage-block{margin-top:44px}
+.mph-page .stage-head{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;padding-bottom:14px;border-bottom:2px solid var(--ink)}
+.mph-page .stage-head .sn{font-family:var(--mono);color:var(--amber-deep);font-weight:600;font-size:.85rem;letter-spacing:.1em}
+.mph-page .stage-head h3{font-size:1.35rem;color:var(--ink)}
+.mph-page .stage-head .sw{font-family:var(--mono);font-size:.8rem;color:var(--muted);margin-left:auto}
+.mph-page .weeks{list-style:none}
+.mph-page .weeks li{display:grid;grid-template-columns:64px 1fr 1.3fr auto;gap:18px;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--line)}
+.mph-page .weeks .wn{font-family:var(--mono);font-weight:600;color:var(--teal-deep);font-size:.9rem}
+.mph-page .weeks .wt{font-weight:700;color:var(--ink)}
+.mph-page .weeks .wm{font-family:var(--mono);font-size:.86rem;color:var(--muted);overflow-wrap:anywhere;min-width:0}
+.mph-page .weeks .test{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;color:var(--ink);background:var(--amber);border-radius:999px;padding:2px 10px;white-space:nowrap}
+.mph-page .weeks .blank{width:1px}
+
+/* sample week */
+.mph-page .sample{margin-top:44px;background:var(--paper);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.mph-page .sample-top{background:var(--ink);color:#fff;padding:20px 26px;display:flex;flex-wrap:wrap;align-items:baseline;gap:14px}
+.mph-page .sample-top .sn{font-family:var(--mono);color:var(--amber);font-size:.82rem;letter-spacing:.12em}
+.mph-page .sample-top h3{font-size:1.25rem;color:#fff}
+.mph-page .sample-top .meaning{font-family:var(--mono);color:var(--on-ink);font-size:.9rem}
+.mph-page .sample-cols{display:grid;grid-template-columns:repeat(3,1fr)}
+.mph-page .scol{padding:22px 26px;min-width:0}
+.mph-page .scol + .scol{border-left:1px solid var(--line)}
+.mph-page .scol h4{font-family:var(--body);font-size:.88rem;font-weight:700;color:var(--teal-deep);margin-bottom:12px}
+.mph-page .chips{display:flex;flex-wrap:wrap;gap:8px}
+.mph-page .chip{font-family:var(--mono);font-size:.88rem;padding:4px 11px;border-radius:999px;background:var(--mist);color:var(--ink);border:1px solid var(--line)}
+.mph-page .chip.known{background:#E6F4F1;border-color:#BFE3DC;color:#14544C}
+.mph-page .chip.awl{background:#FDF1DD;border-color:#F1D3A0;color:#7A4E0C}
+.mph-page .chip.awl sup{font-size:.6rem;margin-left:2px}
+.mph-page .scol p{font-size:.86rem;color:var(--muted);margin-top:12px}
+
+/* week flow */
+.mph-page .flow{list-style:none;display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:44px;counter-reset:f}
+.mph-page .flow li{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:20px 22px 20px 64px;position:relative;counter-increment:f;min-width:0}
+.mph-page .flow li::before{content:counter(f);position:absolute;left:20px;top:18px;width:30px;height:30px;border-radius:50%;background:var(--ink);color:var(--amber);font-family:var(--mono);font-weight:600;display:flex;align-items:center;justify-content:center;font-size:.9rem}
+.mph-page .flow .where{font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;color:var(--amber-deep);text-transform:uppercase}
+.mph-page .flow h3{font-size:1.02rem;color:var(--ink);margin:2px 0 6px}
+.mph-page .flow p{font-size:.93rem;color:var(--muted)}
+
+/* features */
+.mph-page .feats{display:grid;grid-template-columns:repeat(2,1fr);gap:28px 48px;margin-top:44px}
+.mph-page .feat h3{font-size:1.1rem;color:#fff;margin-bottom:8px}
+.mph-page .feat h3 .mono{color:var(--amber);font-size:.8em;margin-right:8px}
+.mph-page .feat p{color:#B7CDD1;font-size:.96rem}
+
+/* outcomes */
+.mph-page .checks{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:44px}
+.mph-page .check{border-top:3px solid var(--amber);padding-top:18px}
+.mph-page .check .q{font-family:var(--display);font-weight:700;font-size:1.12rem;color:var(--ink);line-height:1.5}
+.mph-page .check p{font-size:.93rem;color:var(--muted);margin-top:8px}
+.mph-page .check .ex{font-family:var(--mono);font-size:.84rem;color:var(--teal-deep);margin-top:8px;overflow-wrap:anywhere}
+.mph-page .tests{display:flex;flex-wrap:wrap;gap:12px;margin-top:40px}
+.mph-page .test-pill{display:flex;gap:10px;align-items:baseline;border:1px solid var(--line);border-radius:12px;padding:12px 16px;background:var(--mist-2)}
+.mph-page .test-pill b{font-family:var(--mono);color:var(--amber-deep)}
+.mph-page .test-pill span{font-size:.92rem;color:var(--text)}
+
+/* bridge to next course */
+.mph-page .bridge{display:grid;grid-template-columns:1fr auto 1fr;gap:20px;align-items:center;margin-top:44px}
+.mph-page .bcard{border-radius:16px;padding:24px;border:1px solid var(--line);background:var(--paper);min-width:0}
+.mph-page .bcard.next{background:var(--mist-2)}
+.mph-page .bcard .bn{font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;color:var(--amber-deep);text-transform:uppercase}
+.mph-page .bcard h3{font-size:1.1rem;color:var(--ink);margin:6px 0 10px}
+.mph-page .bcard .sent2{font-family:var(--mono);font-size:.92rem;color:var(--text);line-height:1.7;overflow-wrap:anywhere}
+.mph-page .bcard .sent2 b{color:var(--amber-deep)}
+.mph-page .barrow{font-family:var(--mono);color:var(--amber-deep);font-size:1.5rem;text-align:center}
+
+/* faq */
+.mph-page .faq{margin-top:40px;max-width:52em;display:flex;flex-direction:column;gap:12px}
+.mph-page details{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:4px 22px}
+.mph-page summary{cursor:pointer;list-style:none;font-weight:700;color:var(--ink);padding:16px 30px 16px 0;position:relative}
+.mph-page summary::-webkit-details-marker{display:none}
+.mph-page summary::after{content:"+";position:absolute;right:0;top:12px;font-family:var(--mono);font-size:1.3rem;color:var(--amber-deep)}
+.mph-page details[open] summary::after{content:"−"}
+.mph-page details p{color:var(--muted);font-size:.96rem;padding-bottom:18px}
+
+/* final cta */
+.mph-page .final{text-align:left}
+.mph-page .final .wrap{display:grid;grid-template-columns:1.2fr .8fr;gap:40px;align-items:center}
+.mph-page .final h2{color:#fff}
+.mph-page .final .lead{color:#B7CDD1}
+.mph-page .final .actions{display:flex;flex-direction:column;gap:14px;align-items:flex-start}
+.mph-page .final .small{font-size:.86rem;color:var(--on-ink-2)}
+.mph-page .final .small .mono{color:#E7F0F1}
+
+/* self-study tool */
+.mph-page .tool{display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);gap:48px;align-items:center;margin-top:44px}
+.mph-page .tfeats{list-style:none;display:flex;flex-direction:column;gap:20px}
+.mph-page .tfeats li{display:grid;grid-template-columns:44px 1fr;gap:14px;align-items:start}
+.mph-page .tfeats .ti{width:44px;height:44px;border-radius:12px;background:var(--ink);color:var(--amber);font-family:var(--mono);font-weight:600;display:flex;align-items:center;justify-content:center;font-size:.86rem}
+.mph-page .tfeats h3{font-size:1.05rem;color:var(--ink);margin-bottom:4px}
+.mph-page .tfeats p{color:var(--muted);font-size:.95rem}
+.mph-page .privacy{margin-top:26px;display:flex;gap:12px;align-items:flex-start;background:var(--mist-2);border:1px solid var(--line);border-radius:14px;padding:16px 18px;font-size:.93rem;color:var(--text)}
+.mph-page .privacy b{color:var(--teal-deep)}
+.mph-page .device{background:var(--ink);border-radius:22px;padding:14px;box-shadow:0 30px 60px -30px rgba(8,51,59,.55);min-width:0}
+.mph-page .dev-bar{display:flex;align-items:center;gap:10px;padding:4px 8px 12px;color:#fff;flex-wrap:wrap}
+.mph-page .dev-bar .dn{font-family:var(--display);font-weight:900;font-size:1rem}
+.mph-page .dev-bar .dw{margin-left:auto;font-family:var(--mono);font-size:.7rem;background:var(--amber);color:var(--ink);border-radius:999px;padding:2px 9px;font-weight:600}
+.mph-page .dev-tabs{display:flex;gap:2px;padding:0 6px;font-size:.8rem;font-weight:700;color:var(--on-ink)}
+.mph-page .dev-tabs span{padding:6px 12px 8px;border-bottom:3px solid transparent}
+.mph-page .dev-tabs span.on{color:#fff;border-bottom-color:var(--amber)}
+.mph-page .dev-screen{background:var(--paper);border-radius:14px;padding:16px;margin-top:6px}
+.mph-page .dev-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.mph-page .dev-head .big{font-family:var(--mono);font-weight:600;font-size:1.5rem;color:var(--ink)}
+.mph-page .dev-head .mean{color:var(--muted);font-size:.9rem}
+.mph-page .dev-svg{overflow-x:auto}
+.mph-page .dev-svg svg{display:block;width:100%;min-width:420px;height:auto}
+.mph-page .dev-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.74rem;color:var(--muted)}
+.mph-page .dev-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.mph-page .dev-split{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:12px;padding:10px;border-radius:10px;background:var(--mist-2);border:1px solid var(--line)}
+.mph-page .dev-split .lbl{font-size:.74rem;color:var(--muted);width:100%}
+.mph-page .dp{display:flex;flex-direction:column;align-items:center;border-radius:8px;padding:3px 10px;border:1.5px solid var(--line);background:var(--paper)}
+.mph-page .dp b{font-family:var(--mono);font-size:.92rem;color:var(--ink)}
+.mph-page .dp span{font-size:.66rem;color:var(--muted)}
+.mph-page .dp.pre{border-color:#9CC9D9;background:#EAF4F8}
+.mph-page .dp.root{border-color:var(--amber);background:#FDF1DD}
+.mph-page .dp.suf{border-color:#9FD3CA;background:#E3F3F0}
+.mph-page .dev-split .plus{font-family:var(--mono);color:var(--muted)}
+
+/* briefing form */
+.mph-page .final .wrap{grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);align-items:start}
+.mph-page .sessions{list-style:none;display:flex;flex-direction:column;gap:10px;margin:26px 0}
+.mph-page .sessions li{display:flex;gap:14px;align-items:baseline;border:1px solid rgba(255,255,255,.18);border-radius:12px;padding:12px 16px}
+.mph-page .sessions b{font-family:var(--mono);color:var(--amber);font-weight:600}
+.mph-page .sessions span{color:#E7F0F1}
+.mph-page .final .small a{color:#E7F0F1;text-decoration:underline;text-underline-offset:3px}
+.mph-page .formcard{background:var(--paper);color:var(--text);border-radius:18px;padding:28px;min-width:0}
+.mph-page .formcard h3{font-size:1.3rem;color:var(--ink);margin-bottom:18px}
+.mph-page .bform{display:flex;flex-direction:column;gap:16px}
+.mph-page .bfield{display:flex;flex-direction:column;gap:6px;border:none;min-width:0}
+.mph-page .bfield label,.mph-page .bfield legend{font-size:.92rem;font-weight:700;color:var(--teal-deep)}
+.mph-page .bfield legend{margin-bottom:6px}
+.mph-page .req{font-size:.72rem;font-weight:700;color:var(--coral);margin-left:4px}
+.mph-page .opt{font-size:.72rem;font-weight:500;color:var(--muted);margin-left:4px}
+.mph-page .bfield input[type=text],.mph-page .bfield input[type=email],.mph-page .bfield input[type=number],.mph-page .bfield select{font:inherit;font-size:1rem;color:var(--text);background:var(--paper);border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;width:100%}
+.mph-page .bfield input:focus,.mph-page .bfield select:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(28,114,147,.15)}
+.mph-page .hint{font-size:.8rem;color:var(--muted)}
+.mph-page .slot{display:flex;gap:10px;align-items:center;border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;font-weight:400!important;color:var(--text)!important;margin-top:8px}
+.mph-page .slot:has(input:checked){border-color:var(--amber);background:#FDF6EA}
+.mph-page .slot input{accent-color:var(--amber-deep);width:18px;height:18px}
+.mph-page .slot b{font-family:var(--mono);color:var(--ink);margin-right:8px}
+.mph-page .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.mph-page .privacy-note{font-size:.8rem;color:var(--muted)}
+.mph-page .bsubmit{justify-content:center;width:100%}
+.mph-page .bsubmit:disabled{opacity:.6;cursor:wait}
+.mph-page .ferr{color:var(--coral);font-size:.9rem;min-height:1.2em}
+.mph-page .bdone h3{color:var(--seafoam)}
+.mph-page .bdone p{color:var(--text);margin-bottom:10px}
+.mph-page [hidden]{display:none!important}
+
+/* responsive */
+@media (max-width:980px){
+  .mph-page .navlinks a:not(.nav-cta){display:none}
+  .mph-page .hero .wrap,.mph-page .goals,.mph-page .final .wrap{grid-template-columns:1fr;gap:40px}
+  .mph-page .cards3,.mph-page .pillars,.mph-page .checks{grid-template-columns:1fr}
+  .mph-page .route{grid-template-columns:1fr}
+  .mph-page .rarrow{transform:rotate(90deg);padding:2px 0}
+  .mph-page .sample-cols{grid-template-columns:1fr}
+  .mph-page .scol + .scol{border-left:none;border-top:1px solid var(--line)}
+  .mph-page .flow,.mph-page .feats{grid-template-columns:1fr}
+  .mph-page .bridge{grid-template-columns:1fr}
+  .mph-page .tool{grid-template-columns:1fr;gap:36px}
+  .mph-page .barrow{transform:rotate(90deg)}
+  .mph-page .vstep + .vstep{border-left:none;border-top:1px solid var(--line)}
+  .mph-page .vstep{flex-basis:100%}
+}
+@media (max-width:640px){
+  .mph-page{font-size:16px}
+  .mph-page section{padding-block:68px}
+  .mph-page .hero .wrap{padding-block:56px 64px}
+  .mph-page .weeks li{grid-template-columns:52px 1fr;gap:4px 12px}
+  .mph-page .weeks .wm{grid-column:2}
+  .mph-page .weeks .test,.mph-page .weeks .blank{grid-column:2;justify-self:start}
+  .mph-page .weeks .blank{display:none}
+  .mph-page .stage-head .sw{margin-left:0;width:100%}
+  .mph-page .brand small{display:none}
+}
+
+/* after 15 weeks */
+.mph-page .split{margin-top:40px;border:1px solid var(--line);border-radius:18px;padding:26px;background:var(--paper)}
+.mph-page .split .total{font-family:var(--display);font-size:1.15rem;color:var(--ink);font-weight:700}
+.mph-page .split .total b{font-family:var(--mono);color:var(--amber-deep);font-size:1.5rem;margin:0 4px}
+.mph-page .wbar{display:flex;height:46px;border-radius:12px;overflow:hidden;margin:16px 0 12px;font-weight:700;font-size:.92rem}
+.mph-page .wbar span{display:flex;align-items:center;padding:0 14px;white-space:nowrap;overflow:hidden}
+.mph-page .wbar .sa{flex:14;background:var(--ink);color:#fff}
+.mph-page .wbar .sb{flex:24;background:#DCEBEC;color:#08333B}
+.mph-page .legend2{display:grid;grid-template-columns:14fr 24fr;gap:20px}
+.mph-page .legend2 h3{font-size:1.05rem;color:var(--ink);margin-bottom:6px}
+.mph-page .legend2 p{font-size:.95rem;color:var(--muted)}
+.mph-page .legend2 .ex{font-family:var(--mono);font-size:.86rem;color:var(--teal-deep);margin-top:8px}
+.mph-page .adv{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin-top:28px}
+.mph-page .adv .ac{border-radius:16px;padding:22px;background:var(--mist-2);border:1px solid var(--line)}
+.mph-page .adv .no{font-family:var(--mono);font-size:.8rem;color:var(--amber-deep);font-weight:600}
+.mph-page .adv h3{font-size:1.08rem;color:var(--ink);margin:6px 0 8px}
+.mph-page .adv p{font-size:.95rem;color:var(--text)}
+.mph-page .fine{font-size:.82rem;color:var(--muted);margin-top:18px}
+@media (max-width:820px){ .mph-page .adv,.mph-page .legend2{grid-template-columns:1fr} .mph-page .wbar span{padding:0 10px} .mph-page .wbar{flex-direction:column;height:auto} .mph-page .wbar span{padding:10px 12px} }
+</style>
+
+<div class="mph-page">
+
+<nav class="lp-nav" aria-label="課程導覽">
+  <div class="wrap">
+    <a href="#top" class="brand">拆開英文字｜詞素課<small>Morphology · Academic Vocabulary</small></a>
+    <div class="navlinks">
+      <a href="#why">為什麼</a>
+      <a href="#goals">課程目標</a>
+      <a href="#design">課程設計</a>
+      <a href="#curriculum">十五週大綱</a>
+      <a href="#tool">自學工具</a>
+      <a href="#outcomes">學習成果</a>
+      <a href="#enroll" class="nav-cta">預約課程說明會</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <div>
+      <span class="eyebrow" style="color:var(--amber)">詞素課 · 學術讀寫課前置課程</span>
+      <h1>學術英文裡的生字，<br>大多是<span class="hl">認識的零件</span>，<br>重新組裝。</h1>
+      <p class="hero-sub">大量閱讀讓孩子認得兩千個字。可是一進到學術文本，迎面而來的是 <em>transportation</em>、<em>perspective</em>、<em>unpredictable</em>。這些字幾乎都由孩子早已認得的零件組成。這門課教孩子看見字裡的零件，用已知的字推出未知的字。</p>
+      <div class="hero-meta">
+        <span class="tag">15 週</span>
+        <span class="tag">四階段</span>
+        <span class="tag">自學＋每週直播</span>
+        <span class="tag">130 個錨點詞</span>
+        <span class="tag">388 個延伸目標詞</span>
+        <span class="tag">A2–B1 ／ 國小高年級–高一</span>
+      </div>
+      <div class="hero-cta">
+        <a href="#enroll" class="btn btn-primary">預約課程說明會</a>
+        <a href="#curriculum" class="btn btn-ghost">看十五週大綱</a>
+      </div>
+    </div>
+
+    <div class="specimen" aria-label="一個字的拆解示範">
+      <div class="specimen-h">一個字的拆解過程 · W9 移動家族</div>
+      <div class="thread" aria-hidden="true"></div>
+      <div class="step">
+        <span class="dot"></span>
+        <div class="lab">已知 · 在 ER 中讀過</div>
+        <div class="sent">re<b>port</b> · sup<b>port</b> · <b>port</b>able</div>
+      </div>
+      <div class="step on">
+        <span class="dot"></span>
+        <div class="lab">抽出詞素</div>
+        <div class="sent"><b>port</b> <span class="dim">＝ 搬運、帶著走</span></div>
+      </div>
+      <div class="step">
+        <span class="dot"></span>
+        <div class="lab">延伸 · 推出新字</div>
+        <div class="sent">ex<b>port</b> · im<b>port</b> · trans<b>port</b></div>
+      </div>
+      <div class="step on">
+        <span class="dot"></span>
+        <div class="lab">組裝 · 學術字</div>
+        <div class="parts" aria-label="trans 加 port 加 ation">
+          <span class="part">trans-<small>跨越</small></span>
+          <span class="part root">port<small>搬運</small></span>
+          <span class="part">-ation<small>名詞</small></span>
+        </div>
+      </div>
+      <div class="result"><b>transportation</b><span>把東西跨地搬運這件事 → 運輸（大考 Level 5 · AWL）</span></div>
+    </div>
+  </div>
+</header>
+
+<section id="why">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">為什麼需要這門課</span>
+      <h2>讀得多的孩子，常在學術字前停下來</h2>
+      <p class="lead">孩子的英文從故事書長大，認得的是日常的字。進入 B1 之後，文章換成說明文、科普與社會議題，字也換了一批：長、抽象、看起來全是新的。其實大部分只是舊零件的新組合，只是從來沒有人教孩子怎麼拆。</p>
+    </div>
+    <div class="cards3">
+      <article class="card">
+        <span class="k">字表告訴我們</span>
+        <div class="big">333<small>個</small></div>
+        <h3>延伸目標詞落在大考 Level 3–6</h3>
+        <p>我們從教育部〈國民中小學英語基本字詞 2,000 字〉出發，依詞素一路延伸，整理出 388 個目標詞。其中 333 個屬於大考中心參考詞彙表 Level 3–6，123 個屬於 AWL 學術字彙。</p>
+      </article>
+      <article class="card">
+        <span class="k">中英文的差別</span>
+        <h3>中文有「化」和「性」，卻沒有 struct</h3>
+        <p>中文讀者熟悉「現代化」「可能性」這種組字方式，對應英文的 <span class="m">-ize</span>、<span class="m">-ity</span> 很快上手。真正要另外學的，是英文不能單獨成字的字根（<span class="m">struct</span>、<span class="m">spect</span>），以及字尾一換、詞性跟著變的機制。</p>
+      </article>
+      <article class="card">
+        <span class="k">背字根表的問題</span>
+        <h3>拆錯，比不拆更麻煩</h3>
+        <div class="trap-row" aria-label="看起來能拆、其實不能拆的字">
+          <span class="trap">un + cle</span><span class="trap">corn + er</span><span class="trap">dis + cuss</span>
+        </div>
+        <p>一張字根表教孩子拆字，卻沒教孩子什麼時候不能拆。這門課把「陷阱字」和詞素一起教，拆解永遠是一個要驗證的假設。</p>
+      </article>
+    </div>
+    <p class="punch">學術字彙不是一批新的字，<span class="amber">是孩子早已擁有的零件，換一種方式組裝。</span></p>
+  </div>
+</section>
+
+<section class="alt" id="goals">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">願景與目標</span>
+      <h2>三個帶得走的能力</h2>
+      <p class="lead">這門課不要求孩子背下一張字根表，而是培養三種可以觀察、可以檢驗的能力。</p>
+    </div>
+    <div class="goals">
+      <ul class="goal-list">
+        <li><span class="gk"></span><div>
+          <h3>重組：把讀過的字整理成詞族</h3>
+          <p>大量閱讀累積的字原本是散的。課程把它們依詞素重新串起來，成為一張張詞族地圖。</p>
+          <p class="ex">port → import · export · transport · report</p>
+        </div></li>
+        <li><span class="gk"></span><div>
+          <h3>推測：遇到陌生字，先拆再驗證</h3>
+          <p>讀到不認識的學術字時，能拆解、提出意義假設，再回到上下文確認，而不是直接跳過或查字典。</p>
+          <p class="ex">un + pre + dict + able → 無法事先說出的 → 難以預測</p>
+        </div></li>
+        <li><span class="gk"></span><div>
+          <h3>產出：寫作時主動轉換詞性</h3>
+          <p>能用字尾把動詞、形容詞變成名詞，寫出書面語需要的名詞片語。這正是學術讀寫課第一階段「打包」的前置能力。</p>
+          <p class="ex">It is important. → its importance</p>
+        </div></li>
+      </ul>
+      <aside class="fit">
+        <h3>這門課適合誰</h3>
+        <p class="fit-lead">符合以下任一條件，就適合透過這門課認識更多單字：</p>
+        <ul>
+          <li>平日有大量英文閱讀，例如 iEnglish 累積 700 天以上、書籍等級達 35 級以上</li>
+          <li>A2–B1 程度的國小高年級到國中學生，以學術讀寫為下一步目標</li>
+          <li>國中會考取得 A+ 或 A++，準備接著修「學術讀寫」的高一學生</li>
+        </ul>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<section id="design">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">課程設計</span>
+      <h2>每一個新字，都從一個認識的字開始</h2>
+      <p class="lead">每週的詞素都走同一條路線：先找出孩子已經認得的字，從中抽出詞素，再延伸到學術字。新知識永遠掛在舊知識上。</p>
+    </div>
+    <div class="route" aria-label="已知詞到學術詞的三步路線">
+      <div class="rbox">
+        <span class="rn">Step 1 · 已知詞</span>
+        <h3>2,000 字裡的錨點</h3>
+        <div class="words">television · video · visit · revise</div>
+      </div>
+      <div class="rarrow" aria-hidden="true">→</div>
+      <div class="rbox mid">
+        <span class="rn">Step 2 · 詞素</span>
+        <h3>抽出共同的零件</h3>
+        <div class="words"><b>vis / vid</b> ＝ 看</div>
+      </div>
+      <div class="rarrow" aria-hidden="true">→</div>
+      <div class="rbox">
+        <span class="rn">Step 3 · 學術詞</span>
+        <h3>延伸到 Level 4–6 與 AWL</h3>
+        <div class="words">visible · visual · evidence · supervise</div>
+      </div>
+    </div>
+
+    <div class="versions" aria-label="四個階段">
+      <div class="vstep">
+        <div class="vn">STAGE 1 · W1–3</div>
+        <div class="vt">拆</div>
+        <div class="ve">Splitting</div>
+        <p class="vd">建立「字可以拆」的意識。從透明度最高的字首開始：否定、時間次序、位置程度。</p>
+      </div>
+      <div class="vstep hi">
+        <div class="vn">STAGE 2 · W4–8</div>
+        <div class="vt">轉</div>
+        <div class="ve">Shifting</div>
+        <p class="vd">課程重心。字尾決定詞性：名詞、形容詞、動詞、副詞字尾，以及拼字與重音的變化。</p>
+      </div>
+      <div class="vstep">
+        <div class="vn">STAGE 3 · W9–12</div>
+        <div class="vt">根</div>
+        <div class="ve">Rooting</div>
+        <p class="vd">精選拉丁與希臘字根，依語意場分家族：移動、感知、建造、科學。</p>
+      </div>
+      <div class="vstep">
+        <div class="vn">STAGE 4 · W13–15</div>
+        <div class="vt">用</div>
+        <div class="ve">Applying</div>
+        <p class="vd">在自然與社會科文本中，整合使用「拆解、假設、驗證」的推測流程。</p>
+      </div>
+    </div>
+    <p class="note">第二階段分配最多週數，因為詞性轉換正是學術寫作「名詞化」的基礎，也是銜接學術讀寫課的關鍵。</p>
+  </div>
+</section>
+
+<section class="alt" id="rhythm">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">上課方式</span>
+      <h2>在家反覆學，每週一場直播回答你的問題</h2>
+      <p class="lead">講解有固定的脈絡，所以做成內建在 App 裡的文字與語音，孩子可以反覆看、反覆聽。每週的直播不再重講一次內容，而是把時間留給孩子自己從書裡找到、拿不準的字。</p>
+    </div>
+    <div class="pillars">
+      <div class="pillar">
+        <div class="pct">30<small>分鐘</small></div>
+        <div class="pn">在家：講解與語音</div>
+        <p class="pd">精簡文字講解搭配語音，切成短段落，每段後面有小檢核。隨時可以重看、重聽。</p>
+      </div>
+      <div class="pillar">
+        <div class="pct">70<small>分鐘</small></div>
+        <div class="pn">在家：採集與提問</div>
+        <p class="pd">在自己的書裡找字、在 App 裡拆解與確認、詞性轉換、複習；拿不準的字送出成提問。</p>
+      </div>
+      <div class="pillar hi">
+        <div class="pct">60<small>分鐘</small></div>
+        <div class="pn">每週直播</div>
+        <p class="pd">45 分鐘逐題回答大家上週的提問，15 分鐘用投影片預告這一週要學的內容。</p>
+      </div>
+    </div>
+    <div class="bar" role="img" aria-label="每週時間分配：講解與語音 30 分鐘、採集與提問 70 分鐘、直播 60 分鐘"><span></span><span></span><span></span></div>
+    <div class="bar-legend">
+      <span><i style="background:var(--teal-deep)"></i>講解與語音 19%</span>
+      <span><i style="background:var(--seafoam)"></i>採集與提問 44%</span>
+      <span><i style="background:var(--amber)"></i>每週直播 38%</span>
+    </div>
+    <div class="tests" style="margin-top:28px">
+      <div class="test-pill"><b>45 分</b><span>老師逐題回答班上的提問</span></div>
+      <div class="test-pill"><b>15 分</b><span>投影片預告本週內容</span></div>
+      <div class="test-pill"><b>W1</b><span>開課說明：加入班級、認識 App</span></div>
+      <div class="test-pill"><b>第 16 場</b><span>結業直播：回答 W15 提問、課程總結、進階版預告</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="curriculum">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">進度大綱</span>
+      <h2>十五週，四個階段</h2>
+      <p class="lead">每週 8–12 個新詞素；字根週以「家族」計算。W1、W8、W15 各有一次測驗；每週一場直播，W15 之後再加一場結業直播，共 16 場。</p>
+    </div>
+
+    <div class="stage-block">
+      <div class="stage-head"><span class="sn">STAGE 1</span><h3>拆 · 字首</h3><span class="sw">W1–3</span></div>
+      <ol class="weeks">
+        <li><span class="wn">W1</span><span class="wt">詞素概念與否定字首</span><span class="wm">複合字 · un- · in-/im-/il-/ir- · dis- · mis- · non-</span><span class="test">前測</span></li>
+        <li><span class="wn">W2</span><span class="wt">時間與次序字首</span><span class="wm">re- · pre- · post- · fore- · ex-</span><span class="blank"></span></li>
+        <li><span class="wn">W3</span><span class="wt">位置與程度字首</span><span class="wm">inter- · sub- · super- · trans- · over- · under-</span><span class="blank"></span></li>
+      </ol>
+    </div>
+
+    <div class="stage-block">
+      <div class="stage-head"><span class="sn">STAGE 2</span><h3>轉 · 字尾與詞性</h3><span class="sw">W4–8</span></div>
+      <ol class="weeks">
+        <li><span class="wn">W4</span><span class="wt">名詞字尾①</span><span class="wm">-tion/-sion · -ment · -ness</span><span class="blank"></span></li>
+        <li><span class="wn">W5</span><span class="wt">名詞字尾②</span><span class="wm">-ity · -ance/-ence · -er/-or/-ist</span><span class="blank"></span></li>
+        <li><span class="wn">W6</span><span class="wt">形容詞字尾</span><span class="wm">-al · -ive · -ous · -ful/-less · -able/-ible</span><span class="blank"></span></li>
+        <li><span class="wn">W7</span><span class="wt">動詞與副詞字尾</span><span class="wm">-ize · -ify · -en · -ate · -ly</span><span class="blank"></span></li>
+        <li><span class="wn">W8</span><span class="wt">拼字重音變化與詞性轉換</span><span class="wm">decide → decision · PHOtograph → phoTOgraphy · It is important. → its importance</span><span class="test">期中測</span></li>
+      </ol>
+    </div>
+
+    <div class="stage-block">
+      <div class="stage-head"><span class="sn">STAGE 3</span><h3>根 · 字根家族</h3><span class="sw">W9–12</span></div>
+      <ol class="weeks">
+        <li><span class="wn">W9</span><span class="wt">移動家族</span><span class="wm">port · mit/mis · duc/duct · ject</span><span class="blank"></span></li>
+        <li><span class="wn">W10</span><span class="wt">感知與表達家族</span><span class="wm">spec/spect · vis/vid · dict · scrib/script · aud</span><span class="blank"></span></li>
+        <li><span class="wn">W11</span><span class="wt">建造與製作家族</span><span class="wm">struct · fac/fect · form · tract</span><span class="blank"></span></li>
+        <li><span class="wn">W12</span><span class="wt">希臘科學詞素與語意漂移</span><span class="wm">bio · geo · graph · logy · micro · tele · phon · prevent 的字面義與現代義</span><span class="blank"></span></li>
+      </ol>
+    </div>
+
+    <div class="stage-block">
+      <div class="stage-head"><span class="sn">STAGE 4</span><h3>用 · 學科文本</h3><span class="sw">W13–15</span></div>
+      <ol class="weeks">
+        <li><span class="wn">W13</span><span class="wt">自然科學文本</span><span class="wm">biological · microscope · transformation</span><span class="blank"></span></li>
+        <li><span class="wn">W14</span><span class="wt">社會科文本</span><span class="wm">transportation · perspective · unpredictable</span><span class="blank"></span></li>
+        <li><span class="wn">W15</span><span class="wt">統整產出</span><span class="wm">個人詞族地圖完成版</span><span class="test">後測</span></li>
+        <li><span class="wn">結業</span><span class="wt">第 16 場結業直播</span><span class="wm">回答 W15 的提問 · 課程總結與前後測對照 · 預告進階版</span><span class="test">結業</span></li>
+      </ol>
+    </div>
+
+    <div class="sample" aria-label="一週的詞表範例">
+      <div class="sample-top">
+        <span class="sn">一週的樣子 · W10</span>
+        <h3>vis / vid 家族</h3>
+        <span class="meaning">＝ 看</span>
+      </div>
+      <div class="sample-cols">
+        <div class="scol">
+          <h4>錨點詞（已經認得）</h4>
+          <div class="chips"><span class="chip known">television</span><span class="chip known">video</span><span class="chip known">visit</span><span class="chip known">visitor</span><span class="chip known">revise</span></div>
+          <p>全部來自教育部 2,000 字。</p>
+        </div>
+        <div class="scol">
+          <h4>延伸目標詞</h4>
+          <div class="chips"><span class="chip awl">visible<sup>AWL</sup></span><span class="chip awl">vision<sup>AWL</sup></span><span class="chip awl">visual<sup>AWL</sup></span><span class="chip awl">evidence<sup>AWL</sup></span><span class="chip">supervise</span><span class="chip">envision</span><span class="chip">provision</span></div>
+          <p>大考 Level 3–5，多數屬於 AWL 學術字彙。</p>
+        </div>
+        <div class="scol">
+          <h4>陷阱字（看起來像，其實不是）</h4>
+          <div class="chips"><span class="chip">divide</span><span class="chip">individual</span><span class="chip">vivid</span></div>
+          <p>divide 來自「分開」，vivid 來自「活著」，和「看」無關。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="unit">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">單元進行方式</span>
+      <h2>一週六步，從自己的書開始，到自己的問題結束</h2>
+      <p class="lead">每週的流程固定，孩子很快就知道自己該做什麼。十五週下來，每個人都會累積一張屬於自己的學術詞彙網絡。</p>
+    </div>
+    <ol class="flow">
+      <li><span class="where">在家 · 約 30 分鐘</span><h3>看講解、聽語音</h3><p>在 App 裡打開本週的講解：從認得的字出發，抽出詞素、延伸到學術字，同時點出陷阱字。講解只示範幾個字，其餘留給孩子自己找。</p></li>
+      <li><span class="where">在家 · 約 20 分鐘</span><h3>在自己的書裡找字</h3><p>回到正在讀的 ER 書，找出含有本週詞素的字，記下原句。先別急著查字典。</p></li>
+      <li><span class="where">App · 約 15 分鐘</span><h3>拆開，送出，再確認</h3><p>寫下自己的拆法和猜測，送出之後才看得到確認結果。</p></li>
+      <li><span class="where">App · 約 25 分鐘</span><h3>詞性轉換與複習</h3><p>用本週的詞綴改寫句子；再從自己收集的字出題複習，不熟的字下一輪先出現。</p></li>
+      <li><span class="where">App · 約 10 分鐘</span><h3>提問</h3><p>挑一個最拿不準的字送出提問，寫下不確定的地方；也到班級牆看看同學問了什麼。</p></li>
+      <li><span class="where">每週直播 · 60 分鐘</span><h3>老師回答大家的提問</h3><p>前 45 分鐘逐題講解班上上週的提問，後 15 分鐘預告這一週的內容。孩子會在直播中看到自己的問題被回答。</p></li>
+    </ol>
+  </div>
+</section>
+
+<section id="tool">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">專屬自學工具</span>
+      <h2>我的詞族地圖：把每一本書裡找到的字，長成自己的字彙網絡</h2>
+      <p class="lead">每位學生都有一個「我的詞族地圖」App，在筆電或平板上使用。讀 ER 時遇到含有本週詞素的字，就把它拆開、記下原句。十五週後，地圖上的每一個字，都是孩子自己從書裡找到的。</p>
+    </div>
+    <div class="tool">
+      <div>
+        <ul class="tfeats">
+          <li><span class="ti">拆</span><div><h3>先自己拆，送出後才確認</h3><p>App 只用「已經學過的詞素」提出拆法，不會先給答案。送出後才告訴孩子：符合課程詞表、可能是陷阱字，還是要交給同學確認。</p></div></li>
+          <li><span class="ti">圖</span><div><h3>每個詞素一張詞族地圖</h3><p>以詞素為中心，連出孩子自己找到的字。還沒收集到的課程錨點詞用虛線顯示，陷阱字也一起列出，一眼看出還缺什麼。</p></div></li>
+          <li><span class="ti">表</span><div><h3>詞性表：寫作時的工具</h3><p>第二階段起開放。同一字族的名詞、動詞、形容詞、副詞排成一列，空格就是下一個要找的字，也是寫作「打包」句子時的查詢表。</p></div></li>
+          <li><span class="ti">練</span><div><h3>拆拆看複習</h3><p>從自己收集的字出題，先在心裡拆，再對照答案。不熟的字下一輪會先出現。</p></div></li>
+          <li><span class="ti">講</span><div><h3>講解與語音都在 App 裡</h3><p>每一關的精簡文字講解搭配語音，可以反覆看、反覆聽，不用另外找教材。</p></div></li>
+          <li><span class="ti">問</span><div><h3>提問與班級牆（課程版）</h3><p>拿不準的字送出成提問，老師在每週直播中逐題回答。每個班級有自己的班級牆，從零開始，牆上每個問題都是這一班自己從書裡找到的。</p></div></li>
+        </ul>
+        <div class="privacy"><span aria-hidden="true" class="mono" style="color:var(--amber-deep)">→</span><span><b>個人地圖只存在孩子自己的裝置上，老師看不到。</b>這是孩子的筆記本，不是作業繳交系統。只有孩子選擇提問的字會出現在班級牆，而且只顯示暱稱。</span></div>
+      </div>
+
+      <div class="device" aria-label="我的詞族地圖 App 畫面示意">
+        <div class="dev-bar"><span class="dn">我的詞族地圖</span><span class="dw">W9 · 第三階段 根</span></div>
+        <div class="dev-tabs"><span>採集</span><span class="on">地圖</span><span>詞性表</span><span>複習</span></div>
+        <div class="dev-screen">
+          <div class="dev-head"><span class="big">port</span><span class="mean">＝ 搬運 · W9 字根</span></div>
+          <div class="dev-svg">
+            <svg viewBox="0 0 520 300" role="img" aria-label="port 詞族地圖示意：airport、export、transportation 已收集，report、support 為課程錨點詞">
+              <g stroke-width="1.5">
+                <line x1="260" y1="150" x2="260" y2="44" stroke="#9FB8BD"/>
+                <line x1="260" y1="150" x2="440" y2="108" stroke="#9FB8BD"/>
+                <line x1="260" y1="150" x2="392" y2="246" stroke="#9FB8BD"/>
+                <line x1="260" y1="150" x2="128" y2="246" stroke="#D7E4E5" stroke-dasharray="4 4"/>
+                <line x1="260" y1="150" x2="80" y2="108" stroke="#D7E4E5" stroke-dasharray="4 4"/>
+              </g>
+              <circle cx="260" cy="150" r="46" fill="#08333B"/>
+              <text x="260" y="150" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-weight="600" font-size="20" fill="#E8A33D">port</text>
+              <text x="260" y="170" text-anchor="middle" font-size="12" fill="#C4D7DB">搬運</text>
+              <rect x="215" y="28" width="90" height="30" rx="15" fill="#08333B"/>
+              <text x="260" y="48" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-weight="600" font-size="14" fill="#FFFFFF">airport</text>
+              <rect x="398" y="92" width="84" height="30" rx="15" fill="#08333B"/>
+              <text x="440" y="112" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-weight="600" font-size="14" fill="#FFFFFF">export</text>
+              <rect x="314" y="230" width="156" height="30" rx="15" fill="#E8A33D"/>
+              <text x="392" y="250" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-weight="600" font-size="14" fill="#08333B">transportation</text>
+              <rect x="88" y="230" width="80" height="30" rx="15" fill="#FFFFFF" stroke="#5C7077" stroke-dasharray="4 3"/>
+              <text x="128" y="250" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="14" fill="#5C7077">report</text>
+              <rect x="36" y="92" width="88" height="30" rx="15" fill="#FFFFFF" stroke="#5C7077" stroke-dasharray="4 3"/>
+              <text x="80" y="112" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="14" fill="#5C7077">support</text>
+            </svg>
+          </div>
+          <div class="dev-legend"><span><i style="background:#08333B"></i>同儕確認</span><span><i style="background:#E8A33D"></i>待驗證</span><span><i style="background:#fff;border:1.5px dashed #5C7077"></i>還沒收集的錨點詞</span></div>
+          <div class="dev-split">
+            <span class="lbl">transportation 的拆法</span>
+            <span class="dp pre"><b>trans</b><span>跨越</span></span><span class="plus">+</span>
+            <span class="dp root"><b>port</b><span>搬運</span></span><span class="plus">+</span>
+            <span class="dp suf"><b>ation</b><span>名詞</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="ink-sec" id="features">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">設計特色</span>
+      <h2>和一般字根班不一樣的四件事</h2>
+    </div>
+    <div class="feats">
+      <div class="feat"><h3><span class="mono">01</span>從孩子已經會的字出發</h3><p>每個詞素都掛在 2,000 字表中的錨點詞上。孩子不是在背新規則，而是在整理自己已經擁有的字。</p></div>
+      <div class="feat"><h3><span class="mono">02</span>陷阱字和詞素一起教</h3><p>每週都列出「看起來能拆、其實不能拆」的字。孩子學到的是判斷，而不是機械式的拆解。</p></div>
+      <div class="feat"><h3><span class="mono">03</span>字尾與詞性是重心</h3><p>第二階段用五週處理字尾，因為詞性轉換直接決定孩子能不能寫出書面語，也是學術讀寫課的起點。</p></div>
+      <div class="feat"><h3><span class="mono">04</span>詞表有明確依據</h3><p>錨點詞來自教育部基本字詞 2,000 字，目標詞依大考中心〈高中英文參考詞彙表〉分級，並與 AWL 學術字彙交叉比對。</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="outcomes">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">學習成果</span>
+      <h2>結業時，孩子能做到這三件事</h2>
+      <p class="lead">這也是進入學術讀寫課的出口條件。三次測驗都檢查同樣三種能力，讓家長看見孩子的成長軌跡。</p>
+    </div>
+    <div class="checks">
+      <div class="check">
+        <div class="q">給一個動詞或形容詞，能寫出對應的名詞，並放進句子裡。</div>
+        <p class="ex">develop → development · similar → similarity</p>
+      </div>
+      <div class="check">
+        <div class="q">能辨識常用的字首與字尾，並說出它們的功能。</div>
+        <p class="ex">dis- 表相反 · -ive 變形容詞 · -ize 變動詞</p>
+      </div>
+      <div class="check">
+        <div class="q">讀到陌生的學術字，能說出拆法、意義假設，以及上下文是否支持。</div>
+        <p class="ex">per + spect + ive → 透過看的角度 → 觀點</p>
+      </div>
+    </div>
+    <div class="tests">
+      <div class="test-pill"><b>W1</b><span>前測：了解起點</span></div>
+      <div class="test-pill"><b>W8</b><span>期中測：字首與字尾</span></div>
+      <div class="test-pill"><b>W15</b><span>後測：三種能力總檢</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="next">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">學習路徑</span>
+      <h2>詞素課結束的地方，就是學術讀寫課開始的地方</h2>
+      <p class="lead">學術讀寫課的第一階段「打包」，要孩子把日常句子改寫成高密度的書面句。改寫的關鍵，是把動詞和形容詞變成名詞。詞素課的第二階段，正是在打這個基礎。</p>
+    </div>
+    <div class="bridge">
+      <div class="bcard">
+        <span class="bn">詞素課 · W4–8</span>
+        <h3>學會詞性轉換</h3>
+        <p class="sent2">develop → develop<b>ment</b><br>convenient → convenien<b>ce</b></p>
+      </div>
+      <div class="barrow" aria-hidden="true">→</div>
+      <div class="bcard next">
+        <span class="bn">學術讀寫課 · 打包</span>
+        <h3>寫出書面句</h3>
+        <p class="sent2">The <b>development</b> of technology has brought greater <b>convenience</b> to everyday life.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="after15">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">十五週之後</span>
+      <h2>沒有老師，孩子也能繼續長出自己的詞彙地圖</h2>
+      <p class="lead">十五週結束時，孩子帶走的不是一張字根表，而是一套拆字、推測、確認的方法。結業後，只要負擔少許月費，就能用進階版的「我的詞族地圖」，在自己的閱讀裡繼續擴充詞族地圖。原本由老師做的確認與回答，改由 AI 接手。</p>
+    </div>
+
+    <div class="split">
+      <p class="total">高中階段還有大約<b>3,800</b>個新單字</p>
+      <div class="wbar" role="img" aria-label="約 1,400 字可以拆解，約 2,400 字主要靠廣泛閱讀">
+        <span class="sa">約 1,400 字可以拆解</span><span class="sb">兩千多字靠持續的廣泛閱讀</span>
+      </div>
+      <div class="legend2">
+        <div>
+          <h3>由詞素組成的字</h3>
+          <p>這些字由字首、字根、字尾組成。孩子已經會拆，進階版再補上更多高中常見的字根，例如 cept、vert、ced。</p>
+          <p class="ex">con + cept · contro + vers + y · pro + ced + ure</p>
+        </div>
+        <div>
+          <h3>拆不開的字</h3>
+          <p>這些字大多只有一個詞素，例如 vast、mercy、rhythm，要在閱讀裡反覆遇到才會真正學會。閱讀的範圍也要從故事延伸到知識性的文本，這正是學術讀寫課接手的地方。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="adv">
+      <div class="ac"><span class="no">01 · 從自己的書找字</span><h3>找字的人，還是孩子</h3><p>和課程一樣，字從孩子正在讀的書裡來。進階版不會丟出單字表，只會提示下一個值得留意的詞素。</p></div>
+      <div class="ac"><span class="no">02 · AI 接手確認</span><h3>拿不準的字，隨時可以問</h3><p>拆法對不對、為什麼意思對不上，交給 AI 確認與說明。每月有固定的提問額度，鼓勵孩子先想、再問。</p></div>
+      <div class="ac"><span class="no">03 · 地圖繼續長大</span><h3>課程的地圖，就是起點</h3><p>十五週累積的字和詞族全部保留。進階版從孩子已經會的詞素出發，一個家族一個家族往外長。</p></div>
+    </div>
+    <p class="fine">字數依大考中心〈高中英文參考詞彙表〉扣除國中小 2,000 基本字詞與本課程已用到的字後估算，為約略數字。</p>
+  </div>
+</section>
+
+<section class="alt" id="faq">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">常見問題</span>
+      <h2>家長常問的幾件事</h2>
+    </div>
+    <div class="faq">
+      <details><summary>孩子的程度要到哪裡才適合？</summary><p>符合以下任一條件即可：平日有大量英文閱讀（例如 iEnglish 累積 700 天以上、書籍等級達 35 級以上）；A2–B1 程度的國小高年級到國中學生；或國中會考取得 A+／A++、準備接著修學術讀寫的高一學生。詞素課是從孩子已經認得的字往外延伸，閱讀量不足時，錨點詞會不夠用。</p></details>
+      <details><summary>這和坊間的字根字首班有什麼不同？</summary><p>一般字根班多半從一張字根表開始背。這門課從孩子已經會的字出發，把字尾與詞性轉換當成重心，並且每週教「不能拆的字」。目標是讓孩子能判斷、能推測、能用在寫作，而不是背下更多字根。</p></details>
+      <details><summary>每週的直播在做什麼？</summary><p>每班每週一場 60 分鐘線上直播。除了第一週的開課說明，每場在該週開始時進行：前 45 分鐘老師逐題回答孩子上週的提問，後 15 分鐘用投影片預告這一週要學的內容。W15 之後還有一場結業直播，回答最後一週的提問、總結整門課，並介紹進階版。講解內容都在 App 裡，孩子可以反覆看、反覆聽；直播把時間留給孩子自己的問題，這也是鼓勵孩子主動參與的方式。</p></details>
+      <details><summary>國小六年級會不會太難？</summary><p>課程沒有年齡限制，關鍵在閱讀量與程度。對較年幼的學生，每週新詞素控制在合理數量，語意家族用中文命名，例如「移動家族」「看見家族」，也盡量避免抽象的字源故事。</p></details>
+      <details><summary>一定要接著上學術讀寫課嗎？</summary><p>不一定。詞素課本身就能明顯提升閱讀說明文與科普文章的能力。但如果孩子的目標是學術寫作或 IELTS 學術模組，建議接著修學術讀寫課，兩門課的方法是銜接設計的。</p></details>
+      <details><summary>居家練習需要家長陪同嗎？</summary><p>不需要陪同操作。居家練習是在孩子自己正在讀的書裡找詞素、整理詞族地圖。家長可以偶爾請孩子說明這週找到的字是怎麼拆的，這就是很好的支持。</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="ink-sec final" id="enroll">
+  <div class="wrap">
+    <div>
+      <span class="eyebrow">課程說明會 · 線上 90 分鐘</span>
+      <h2>讓孩子把兩千個字，變成一套能自己長大的字彙</h2>
+      <p class="lead">說明會會完整介紹課程設計、十五週進度、「我的詞族地圖」的使用方式，並開放家長提問。填寫表單完成預約，說明會前我們會把 Zoom 會議連結寄到你的信箱。</p>
+      <ul class="sessions" aria-label="說明會場次">
+        <li><b>10/24（六）</b><span>上午 10:00–11:30</span></li>
+        <li><b>10/27（二）</b><span>晚上 21:00 開始</span></li>
+      </ul>
+      <p class="small">其他問題可透過 LINE 官方帳號聯繫：<a class="mono" href="https://lin.ee/HCmnCgn" target="_blank" rel="noopener">lin.ee/HCmnCgn</a></p>
+    </div>
+
+    <div class="formcard">
+      <form id="mph-briefing" class="bform" novalidate data-endpoint="">
+        <h3>預約課程說明會</h3>
+        <div class="bfield">
+          <label for="mph-name">家長姓名 <span class="req">必填</span></label>
+          <input id="mph-name" name="parentName" type="text" autocomplete="name" maxlength="40" required>
+        </div>
+        <div class="bfield">
+          <label for="mph-email">電子信箱 <span class="req">必填</span></label>
+          <input id="mph-email" name="email" type="email" autocomplete="email" inputmode="email" maxlength="120" required>
+          <span class="hint">用來寄送說明會的 Zoom 會議連結</span>
+        </div>
+        <div class="bfield">
+          <label for="mph-gept">孩子的英檢程度 <span class="req">必填</span></label>
+          <select id="mph-gept" name="gept" required>
+            <option value="">請選擇</option>
+            <option>尚未參加英檢</option>
+            <option>初級初試通過</option>
+            <option>初級複試通過</option>
+            <option>中級初試通過</option>
+            <option>中級複試通過</option>
+            <option>中高級以上</option>
+          </select>
+        </div>
+        <div class="bfield">
+          <label for="mph-ienglish">iEnglish 等級 <span class="opt">選填</span></label>
+          <input id="mph-ienglish" name="iEnglishLevel" type="number" inputmode="numeric" min="1" max="60" placeholder="例：35">
+          <span class="hint">沒有使用 iEnglish 可以留空</span>
+        </div>
+        <fieldset class="bfield">
+          <legend>偏好時段 <span class="req">必填</span></legend>
+          <label class="slot"><input type="radio" name="session" value="2026-10-24 10:00" required><span><b>10/24（六）</b>上午 10:00–11:30</span></label>
+          <label class="slot"><input type="radio" name="session" value="2026-10-27 21:00"><span><b>10/27（二）</b>晚上 21:00 開始</span></label>
+        </fieldset>
+        <div class="hp" aria-hidden="true"><label for="mph-website">請將此欄位留空</label><input id="mph-website" name="website" type="text" tabindex="-1" autocomplete="off"></div>
+        <p class="privacy-note">你填寫的資料只用於寄送說明會連結與課程相關通知。</p>
+        <button type="submit" class="btn btn-primary bsubmit">送出預約</button>
+        <p class="ferr" id="mph-ferr" role="alert"></p>
+      </form>
+      <div class="bdone" id="mph-done" hidden>
+        <h3>已收到你的預約</h3>
+        <p id="mph-done-text"></p>
+        <p class="hint">如果幾分鐘內沒有收到信，請檢查垃圾郵件匣，或透過 LINE 聯繫我們。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+(() => {
+  const form = document.getElementById('mph-briefing'); if (!form) return;
+  const err = document.getElementById('mph-ferr');
+  const LABEL = {'2026-10-24 10:00':'10/24（六）上午 10:00–11:30','2026-10-27 21:00':'10/27（二）晚上 21:00'};
+  const btn = form.querySelector('.bsubmit');
+  form.addEventListener('submit', async e => {
+    e.preventDefault(); err.textContent = '';
+    const d = Object.fromEntries(new FormData(form).entries());
+    const fail = (msg, el) => { err.textContent = msg; if (el) el.focus(); };
+    if (!d.parentName || !d.parentName.trim()) return fail('請填寫家長姓名。', form.parentName);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((d.email || '').trim())) return fail('請填寫正確的電子信箱，會議連結會寄到這裡。', form.email);
+    if (!d.gept) return fail('請選擇孩子的英檢程度。', form.gept);
+    if (!d.session) return fail('請選擇偏好的說明會時段。', form.querySelector('input[name=session]'));
+    if (d.website) return;
+    const endpoint = form.dataset.endpoint;
+    btn.disabled = true; btn.textContent = '送出中…';
+    const done = () => {
+      form.hidden = true;
+      document.getElementById('mph-done-text').textContent = `已為你預約 ${LABEL[d.session]} 的說明會。說明會前，我們會把 Zoom 會議連結寄到 ${d.email.trim()}。`;
+      document.getElementById('mph-done').hidden = false;
+    };
+    if (!endpoint) { setTimeout(done, 400); return; }  /* preview mode: no endpoint configured yet */
+    try {
+      const res = await fetch(endpoint, {method:'POST', body: JSON.stringify({...d, page: location.href})});
+      const out = await res.json();
+      if (out.ok) done();
+      else { fail(out.message || '送出失敗，請稍後再試，或透過 LINE 聯繫我們。'); btn.disabled = false; btn.textContent = '送出預約'; }
+    } catch (x) {
+      fail('網路連線發生問題，請稍後再試，或透過 LINE 聯繫我們。'); btn.disabled = false; btn.textContent = '送出預約';
+    }
+  });
+})();
+</script>
+
+</div>

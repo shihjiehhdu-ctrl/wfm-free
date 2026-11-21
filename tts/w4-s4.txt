@@ -1,5 +1,7 @@
-最後想一個問題：既然有 develop，為什麼還需要 development？
+-ness 的意思是「這種狀態」，通常加在形容詞後面。kind 是善良的，kindness 是善良；dark 是黑暗的，darkness 是黑暗；weak 是虛弱的，weakness 是弱點。
 
-比比看這兩句。The town developed quickly. 這是在說一件事。The quick development of the town surprised everyone. 這裡，development 變成一個東西，可以被形容，也可以當主詞，後面再接新的訊息。
+注意拼字：happy 加 -ness，y 會變成 i，寫成 happiness。
 
-把動作打包成名詞，一個句子就能裝進更多訊息。這是學術文章最常用的技巧之一。現在你只要先開始注意：書裡的 tion、ment、ness，常常就是一個被打包起來的動作或狀態。
+aware 是意識到的，awareness 是意識、認知。The campaign raised awareness of plastic pollution. 在這句話裡，awareness 是指大家對塑膠污染的認識。
+
+〔停頓 1 秒〕最有名的陷阱字是 business。它原本真的是 busy 加 ness，「忙碌的狀態」，可是現在的意思是生意、公司。零件還在，意思已經走遠了。你可以標成半透明，寫下你的理由。

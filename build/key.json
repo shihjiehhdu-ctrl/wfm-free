@@ -1,1 +1,1806 @@
-{"key": {"unhappy": ["un"], "unable": ["un"], "unkind": ["un"], "unfair": ["un"], "unusual": ["un"], "unfamiliar": ["un"], "unexpected": ["un"], "unemployment": ["un"], "uncover": ["un"], "unlock": ["un"], "unfold": ["un"], "unveil": ["un"], "impolite": ["in"], "impossible": ["in"], "independent": ["in"], "incorrect": ["in"], "inaccurate": ["in"], "illegal": ["in"], "irregular": ["in"], "irresponsible": ["in"], "incredible": ["in"], "infinite": ["in"], "injustice": ["in"], "indispensable": ["in"], "disappear": ["dis"], "dishonest": ["dis"], "discover": ["dis"], "disagree": ["dis"], "dislike": ["dis"], "disadvantage": ["dis"], "disability": ["dis"], "discourage": ["dis"], "disappoint": ["dis"], "disapprove": ["dis"], "disconnect": ["dis"], "discomfort": ["dis"], "disbelief": ["dis"], "mistake": ["mis"], "misunderstand": ["mis"], "mislead": ["mis"], "misfortune": ["mis"], "nonsense": ["non"], "nonprofit": ["non"], "reproduce": ["duc"], "export": ["port"], "submit": ["mit"], "transport": ["port"], "transportation": ["port"], "transmit": ["mit"], "action": ["tion"], "decision": ["tion"], "invitation": ["tion"], "direction": ["tion"], "discussion": ["tion"], "pollution": ["tion"], "collection": ["tion"], "preparation": ["tion"], "expectation": ["tion"], "imagination": ["tion"], "protection": ["tion"], "invention": ["tion"], "investigation": ["tion"], "communication": ["tion"], "contribution": ["tion"], "distribution": ["tion"], "evaluation": ["tion"], "movement": ["ment"], "development": ["ment"], "improvement": ["ment"], "agreement": ["ment"], "enjoyment": ["ment"], "payment": ["ment"], "treatment": ["ment"], "achievement": ["ment"], "requirement": ["ment"], "establishment": ["ment"], "investment": ["ment"], "involvement": ["ment"], "commitment": ["ment", "mit"], "assessment": ["ment"], "happiness": ["ness"], "kindness": ["ness"], "darkness": ["ness"], "weakness": ["ness"], "illness": ["ness"], "awareness": ["ness"], "consciousness": ["ness"], "effectiveness": ["ness"], "productive": ["duc"], "portable": ["port"], "airport": ["port"], "report": ["port"], "support": ["port"], "import": ["port"], "porter": ["port"], "portfolio": ["port"], "promise": ["mit"], "admit": ["mit"], "permit": ["mit"], "permission": ["mit"], "mission": ["mit"], "commit": ["mit"], "admission": ["mit"], "dismiss": ["mit"], "emission": ["mit"], "introduce": ["duc"], "produce": ["duc"], "production": ["duc"], "education": ["duc"], "reduce": ["duc"], "reduction": ["duc"], "product": ["duc"], "conduct": ["duc"], "conductor": ["duc"], "induce": ["duc"], "deduct": ["duc"], "subject": ["ject"], "object": ["ject"], "project": ["ject"], "reject": ["ject"], "inject": ["ject"], "injection": ["ject"], "objection": ["ject"], "objective": ["ject"], "rejection": ["ject"], "projection": ["ject"], "subjective": ["ject"]}, "traps": {"uncle": ["un"], "uniform": ["un"], "until": ["un"], "understand": ["un"], "important": ["in", "port"], "insect": ["in"], "interest": ["in"], "invaluable": ["in"], "discuss": ["dis"], "distance": ["dis"], "distant": ["dis"], "miss": ["mis", "mit"], "missile": ["mis"], "station": ["tion"], "mansion": ["tion"], "question": ["tion"], "comment": ["ment"], "apartment": ["ment"], "department": ["ment"], "business": ["ness"], "portion": ["port"], "portrait": ["port"], "limit": ["mit"], "summit": ["mit"], "vomit": ["mit"], "imitate": ["mit"], "duck": ["duc"]}}
+{
+ "key": {
+  "classroom": [
+   "cmp"
+  ],
+  "homework": [
+   "cmp"
+  ],
+  "birthday": [
+   "cmp"
+  ],
+  "bedroom": [
+   "cmp"
+  ],
+  "airport": [
+   "cmp",
+   "port"
+  ],
+  "supermarket": [
+   "cmp",
+   "sub",
+   "super"
+  ],
+  "breakthrough": [
+   "cmp"
+  ],
+  "outcome": [
+   "cmp"
+  ],
+  "input": [
+   "cmp"
+  ],
+  "overall": [
+   "cmp",
+   "over"
+  ],
+  "unhappy": [
+   "un"
+  ],
+  "unable": [
+   "un"
+  ],
+  "unkind": [
+   "un"
+  ],
+  "unfair": [
+   "un"
+  ],
+  "unusual": [
+   "un"
+  ],
+  "unfamiliar": [
+   "un"
+  ],
+  "unexpected": [
+   "un"
+  ],
+  "unemployment": [
+   "un"
+  ],
+  "uncover": [
+   "un"
+  ],
+  "unlock": [
+   "un"
+  ],
+  "unfold": [
+   "un"
+  ],
+  "unveil": [
+   "un"
+  ],
+  "impolite": [
+   "in"
+  ],
+  "impossible": [
+   "in"
+  ],
+  "independent": [
+   "in"
+  ],
+  "incorrect": [
+   "in"
+  ],
+  "inaccurate": [
+   "in"
+  ],
+  "illegal": [
+   "in"
+  ],
+  "irregular": [
+   "in"
+  ],
+  "irresponsible": [
+   "able",
+   "in"
+  ],
+  "incredible": [
+   "in"
+  ],
+  "infinite": [
+   "in"
+  ],
+  "injustice": [
+   "in"
+  ],
+  "indispensable": [
+   "in"
+  ],
+  "disappear": [
+   "dis"
+  ],
+  "dishonest": [
+   "dis"
+  ],
+  "discover": [
+   "dis"
+  ],
+  "disagree": [
+   "dis"
+  ],
+  "dislike": [
+   "dis"
+  ],
+  "disadvantage": [
+   "dis"
+  ],
+  "disability": [
+   "dis"
+  ],
+  "discourage": [
+   "dis"
+  ],
+  "disappoint": [
+   "dis"
+  ],
+  "disapprove": [
+   "dis"
+  ],
+  "disconnect": [
+   "dis"
+  ],
+  "discomfort": [
+   "dis"
+  ],
+  "disbelief": [
+   "dis"
+  ],
+  "mistake": [
+   "mis"
+  ],
+  "misunderstand": [
+   "mis"
+  ],
+  "mislead": [
+   "mis"
+  ],
+  "misfortune": [
+   "mis"
+  ],
+  "nonsense": [
+   "non"
+  ],
+  "nonprofit": [
+   "non"
+  ],
+  "return": [
+   "re"
+  ],
+  "review": [
+   "re"
+  ],
+  "recycle": [
+   "re"
+  ],
+  "recover": [
+   "re"
+  ],
+  "renew": [
+   "re"
+  ],
+  "restore": [
+   "re"
+  ],
+  "reunion": [
+   "re"
+  ],
+  "recall": [
+   "re"
+  ],
+  "refund": [
+   "re"
+  ],
+  "repay": [
+   "re"
+  ],
+  "refresh": [
+   "re"
+  ],
+  "reproduce": [
+   "duc",
+   "re"
+  ],
+  "reassure": [
+   "re"
+  ],
+  "prepare": [
+   "pre"
+  ],
+  "preview": [
+   "pre"
+  ],
+  "prehistoric": [
+   "pre"
+  ],
+  "premature": [
+   "pre"
+  ],
+  "precaution": [
+   "pre"
+  ],
+  "predict": [
+   "dict",
+   "pre"
+  ],
+  "postpone": [
+   "post"
+  ],
+  "forecast": [
+   "fore"
+  ],
+  "exit": [
+   "ex"
+  ],
+  "express": [
+   "ex"
+  ],
+  "export": [
+   "ex",
+   "port"
+  ],
+  "exchange": [
+   "ex"
+  ],
+  "expand": [
+   "ex"
+  ],
+  "extend": [
+   "ex"
+  ],
+  "exclude": [
+   "ex"
+  ],
+  "exclaim": [
+   "ex"
+  ],
+  "extract": [
+   "ex",
+   "tract"
+  ],
+  "internet": [
+   "inter"
+  ],
+  "interview": [
+   "inter"
+  ],
+  "international": [
+   "al",
+   "in",
+   "inter"
+  ],
+  "interact": [
+   "inter"
+  ],
+  "interaction": [
+   "inter"
+  ],
+  "intermediate": [
+   "inter"
+  ],
+  "interfere": [
+   "inter"
+  ],
+  "intersection": [
+   "inter"
+  ],
+  "subway": [
+   "sub"
+  ],
+  "submarine": [
+   "sub"
+  ],
+  "suburban": [
+   "sub"
+  ],
+  "submit": [
+   "mit",
+   "sub"
+  ],
+  "supervise": [
+   "sub",
+   "super",
+   "vis"
+  ],
+  "superior": [
+   "sub",
+   "super"
+  ],
+  "superficial": [
+   "sub",
+   "super"
+  ],
+  "transport": [
+   "port",
+   "trans"
+  ],
+  "transportation": [
+   "port",
+   "tion",
+   "trans"
+  ],
+  "translate": [
+   "trans"
+  ],
+  "transform": [
+   "form",
+   "trans"
+  ],
+  "transmit": [
+   "mit",
+   "trans"
+  ],
+  "transparent": [
+   "trans"
+  ],
+  "transplant": [
+   "trans"
+  ],
+  "underline": [
+   "under"
+  ],
+  "underwear": [
+   "under"
+  ],
+  "overpass": [
+   "over"
+  ],
+  "underpass": [
+   "under"
+  ],
+  "overcome": [
+   "over"
+  ],
+  "overlook": [
+   "over"
+  ],
+  "overnight": [
+   "over"
+  ],
+  "overwhelm": [
+   "over"
+  ],
+  "underestimate": [
+   "under"
+  ],
+  "undermine": [
+   "under"
+  ],
+  "undertake": [
+   "under"
+  ],
+  "undergraduate": [
+   "under"
+  ],
+  "action": [
+   "tion"
+  ],
+  "decision": [
+   "tion"
+  ],
+  "invitation": [
+   "tion"
+  ],
+  "direction": [
+   "tion"
+  ],
+  "discussion": [
+   "tion"
+  ],
+  "pollution": [
+   "tion"
+  ],
+  "collection": [
+   "tion"
+  ],
+  "preparation": [
+   "tion"
+  ],
+  "expectation": [
+   "tion"
+  ],
+  "imagination": [
+   "tion"
+  ],
+  "protection": [
+   "tion"
+  ],
+  "invention": [
+   "tion"
+  ],
+  "investigation": [
+   "tion"
+  ],
+  "communication": [
+   "tion"
+  ],
+  "contribution": [
+   "tion"
+  ],
+  "distribution": [
+   "tion"
+  ],
+  "evaluation": [
+   "tion"
+  ],
+  "movement": [
+   "ment"
+  ],
+  "development": [
+   "ment"
+  ],
+  "improvement": [
+   "ment"
+  ],
+  "agreement": [
+   "ment"
+  ],
+  "enjoyment": [
+   "ment"
+  ],
+  "payment": [
+   "ment"
+  ],
+  "treatment": [
+   "ment"
+  ],
+  "achievement": [
+   "ment"
+  ],
+  "requirement": [
+   "ment"
+  ],
+  "establishment": [
+   "ment"
+  ],
+  "investment": [
+   "ment"
+  ],
+  "involvement": [
+   "ment"
+  ],
+  "commitment": [
+   "ment",
+   "mit"
+  ],
+  "assessment": [
+   "ment"
+  ],
+  "happiness": [
+   "ness"
+  ],
+  "kindness": [
+   "ness"
+  ],
+  "darkness": [
+   "ness"
+  ],
+  "weakness": [
+   "ness"
+  ],
+  "illness": [
+   "ness"
+  ],
+  "awareness": [
+   "ness"
+  ],
+  "consciousness": [
+   "ness"
+  ],
+  "effectiveness": [
+   "ness"
+  ],
+  "activity": [
+   "ity"
+  ],
+  "possibility": [
+   "ity"
+  ],
+  "popularity": [
+   "ity"
+  ],
+  "reality": [
+   "ity"
+  ],
+  "equality": [
+   "ex",
+   "ity"
+  ],
+  "majority": [
+   "ity"
+  ],
+  "minority": [
+   "ity"
+  ],
+  "personality": [
+   "ity"
+  ],
+  "responsibility": [
+   "ity"
+  ],
+  "similarity": [
+   "ity"
+  ],
+  "creativity": [
+   "ity"
+  ],
+  "diversity": [
+   "ity"
+  ],
+  "complexity": [
+   "ity"
+  ],
+  "security": [
+   "ity"
+  ],
+  "priority": [
+   "ity"
+  ],
+  "difference": [
+   "ance"
+  ],
+  "importance": [
+   "ance"
+  ],
+  "silence": [
+   "ance"
+  ],
+  "appearance": [
+   "ance"
+  ],
+  "convenience": [
+   "ance"
+  ],
+  "absence": [
+   "ance"
+  ],
+  "confidence": [
+   "ance"
+  ],
+  "existence": [
+   "ance"
+  ],
+  "independence": [
+   "ance"
+  ],
+  "patience": [
+   "ance"
+  ],
+  "evidence": [
+   "ance",
+   "vis"
+  ],
+  "significance": [
+   "ance"
+  ],
+  "frequency": [
+   "ance"
+  ],
+  "efficiency": [
+   "ance"
+  ],
+  "consequence": [
+   "ance"
+  ],
+  "reference": [
+   "ance"
+  ],
+  "teacher": [
+   "er"
+  ],
+  "writer": [
+   "er"
+  ],
+  "singer": [
+   "er"
+  ],
+  "visitor": [
+   "er",
+   "vis"
+  ],
+  "actor": [
+   "er"
+  ],
+  "artist": [
+   "er"
+  ],
+  "engineer": [
+   "er"
+  ],
+  "survivor": [
+   "er"
+  ],
+  "inventor": [
+   "er"
+  ],
+  "designer": [
+   "er"
+  ],
+  "producer": [
+   "er"
+  ],
+  "editor": [
+   "er"
+  ],
+  "consumer": [
+   "er"
+  ],
+  "instructor": [
+   "er",
+   "struct"
+  ],
+  "researcher": [
+   "er"
+  ],
+  "specialist": [
+   "er"
+  ],
+  "observer": [
+   "er"
+  ],
+  "supervisor": [
+   "er"
+  ],
+  "natural": [
+   "al"
+  ],
+  "national": [
+   "al"
+  ],
+  "personal": [
+   "al"
+  ],
+  "traditional": [
+   "al"
+  ],
+  "cultural": [
+   "al"
+  ],
+  "educational": [
+   "al"
+  ],
+  "emotional": [
+   "al"
+  ],
+  "environmental": [
+   "al"
+  ],
+  "arrival": [
+   "al"
+  ],
+  "practical": [
+   "al"
+  ],
+  "original": [
+   "al"
+  ],
+  "industrial": [
+   "al"
+  ],
+  "regional": [
+   "al"
+  ],
+  "functional": [
+   "al"
+  ],
+  "professional": [
+   "al"
+  ],
+  "critical": [
+   "al"
+  ],
+  "active": [
+   "ive"
+  ],
+  "talkative": [
+   "ive"
+  ],
+  "creative": [
+   "ive"
+  ],
+  "expressive": [
+   "ive"
+  ],
+  "imaginative": [
+   "ive"
+  ],
+  "protective": [
+   "ive"
+  ],
+  "effective": [
+   "fac",
+   "ive"
+  ],
+  "attractive": [
+   "ive",
+   "tract"
+  ],
+  "competitive": [
+   "ive"
+  ],
+  "productive": [
+   "duc",
+   "ive"
+  ],
+  "constructive": [
+   "ive",
+   "struct"
+  ],
+  "alternative": [
+   "ive"
+  ],
+  "representative": [
+   "ive"
+  ],
+  "dangerous": [
+   "ous"
+  ],
+  "humorous": [
+   "ous"
+  ],
+  "famous": [
+   "ous"
+  ],
+  "nervous": [
+   "ous"
+  ],
+  "mountainous": [
+   "ous"
+  ],
+  "courageous": [
+   "ous"
+  ],
+  "poisonous": [
+   "ous"
+  ],
+  "continuous": [
+   "ous"
+  ],
+  "mysterious": [
+   "ous"
+  ],
+  "luxurious": [
+   "ous"
+  ],
+  "various": [
+   "ous"
+  ],
+  "careful": [
+   "ful"
+  ],
+  "careless": [
+   "less"
+  ],
+  "helpful": [
+   "ful"
+  ],
+  "useful": [
+   "ful"
+  ],
+  "colorful": [
+   "ful"
+  ],
+  "peaceful": [
+   "ful"
+  ],
+  "powerful": [
+   "ful"
+  ],
+  "hopeful": [
+   "ful"
+  ],
+  "meaningful": [
+   "ful"
+  ],
+  "respectful": [
+   "ful"
+  ],
+  "harmful": [
+   "ful"
+  ],
+  "faithful": [
+   "ful"
+  ],
+  "homeless": [
+   "less"
+  ],
+  "endless": [
+   "less"
+  ],
+  "regardless": [
+   "less"
+  ],
+  "comfortable": [
+   "able"
+  ],
+  "valuable": [
+   "able"
+  ],
+  "enjoyable": [
+   "able"
+  ],
+  "reasonable": [
+   "able"
+  ],
+  "noticeable": [
+   "able"
+  ],
+  "acceptable": [
+   "able"
+  ],
+  "considerable": [
+   "able"
+  ],
+  "suitable": [
+   "able"
+  ],
+  "reliable": [
+   "able"
+  ],
+  "profitable": [
+   "able"
+  ],
+  "remarkable": [
+   "able"
+  ],
+  "sustainable": [
+   "able"
+  ],
+  "accessible": [
+   "able"
+  ],
+  "portable": [
+   "able",
+   "port"
+  ],
+  "realize": [
+   "ize"
+  ],
+  "modernize": [
+   "ize"
+  ],
+  "specialize": [
+   "ize"
+  ],
+  "characterize": [
+   "ize"
+  ],
+  "symbolize": [
+   "ize"
+  ],
+  "criticize": [
+   "ize"
+  ],
+  "civilize": [
+   "ize"
+  ],
+  "classify": [
+   "ify"
+  ],
+  "simplify": [
+   "ify"
+  ],
+  "justify": [
+   "ify"
+  ],
+  "purify": [
+   "ify"
+  ],
+  "intensify": [
+   "ify"
+  ],
+  "diversify": [
+   "ify"
+  ],
+  "modify": [
+   "ify"
+  ],
+  "widen": [
+   "en"
+  ],
+  "shorten": [
+   "en"
+  ],
+  "deepen": [
+   "en"
+  ],
+  "weaken": [
+   "en"
+  ],
+  "frighten": [
+   "en"
+  ],
+  "strengthen": [
+   "en"
+  ],
+  "lengthen": [
+   "en"
+  ],
+  "threaten": [
+   "en"
+  ],
+  "tighten": [
+   "en"
+  ],
+  "loosen": [
+   "en"
+  ],
+  "broaden": [
+   "en"
+  ],
+  "enlarge": [
+   "enp"
+  ],
+  "enrich": [
+   "enp"
+  ],
+  "enable": [
+   "enp"
+  ],
+  "celebrate": [
+   "ate"
+  ],
+  "create": [
+   "ate"
+  ],
+  "decorate": [
+   "ate"
+  ],
+  "appreciate": [
+   "ate"
+  ],
+  "motivate": [
+   "ate"
+  ],
+  "originate": [
+   "ate"
+  ],
+  "fortunate": [
+   "ate"
+  ],
+  "passionate": [
+   "ate"
+  ],
+  "usually": [
+   "ly"
+  ],
+  "finally": [
+   "ly"
+  ],
+  "actually": [
+   "ly"
+  ],
+  "especially": [
+   "ly",
+   "spec"
+  ],
+  "significantly": [
+   "ly"
+  ],
+  "consequently": [
+   "ly"
+  ],
+  "approximately": [
+   "ly"
+  ],
+  "relatively": [
+   "ly"
+  ],
+  "primarily": [
+   "ly"
+  ],
+  "eventually": [
+   "ly"
+  ],
+  "ability": [
+   "ity"
+  ],
+  "explanation": [
+   "ex",
+   "tion"
+  ],
+  "description": [
+   "scrib",
+   "tion"
+  ],
+  "pronunciation": [
+   "tion"
+  ],
+  "admission": [
+   "mit",
+   "tion"
+  ],
+  "reduction": [
+   "duc",
+   "re",
+   "tion"
+  ],
+  "competition": [
+   "tion"
+  ],
+  "photography": [
+   "graph"
+  ],
+  "photographic": [
+   "graph"
+  ],
+  "historical": [
+   "al"
+  ],
+  "economic": [
+   "ex"
+  ],
+  "report": [
+   "port"
+  ],
+  "support": [
+   "port"
+  ],
+  "import": [
+   "port"
+  ],
+  "porter": [
+   "port"
+  ],
+  "portfolio": [
+   "port"
+  ],
+  "promise": [
+   "mit"
+  ],
+  "admit": [
+   "mit"
+  ],
+  "permit": [
+   "mit"
+  ],
+  "permission": [
+   "mit"
+  ],
+  "mission": [
+   "mit"
+  ],
+  "commit": [
+   "mit"
+  ],
+  "dismiss": [
+   "mit"
+  ],
+  "emission": [
+   "mit"
+  ],
+  "introduce": [
+   "duc"
+  ],
+  "produce": [
+   "duc"
+  ],
+  "production": [
+   "duc"
+  ],
+  "education": [
+   "duc"
+  ],
+  "reduce": [
+   "duc"
+  ],
+  "product": [
+   "duc"
+  ],
+  "conduct": [
+   "duc"
+  ],
+  "conductor": [
+   "duc"
+  ],
+  "induce": [
+   "duc"
+  ],
+  "deduct": [
+   "duc"
+  ],
+  "object": [
+   "ject"
+  ],
+  "project": [
+   "ject"
+  ],
+  "reject": [
+   "ject"
+  ],
+  "inject": [
+   "ject"
+  ],
+  "injection": [
+   "ject"
+  ],
+  "objection": [
+   "ject"
+  ],
+  "objective": [
+   "ject"
+  ],
+  "rejection": [
+   "ject"
+  ],
+  "projection": [
+   "ject"
+  ],
+  "subjective": [
+   "ject"
+  ],
+  "special": [
+   "spec"
+  ],
+  "respect": [
+   "spec"
+  ],
+  "inspect": [
+   "spec"
+  ],
+  "inspector": [
+   "spec"
+  ],
+  "suspect": [
+   "spec"
+  ],
+  "aspect": [
+   "spec"
+  ],
+  "perspective": [
+   "ive",
+   "spec"
+  ],
+  "spectator": [
+   "spec"
+  ],
+  "prospect": [
+   "spec"
+  ],
+  "spectacular": [
+   "spec"
+  ],
+  "specific": [
+   "spec"
+  ],
+  "species": [
+   "spec"
+  ],
+  "specimen": [
+   "spec"
+  ],
+  "television": [
+   "tele",
+   "vis"
+  ],
+  "video": [
+   "vis"
+  ],
+  "visit": [
+   "vis"
+  ],
+  "revise": [
+   "vis"
+  ],
+  "visible": [
+   "vis"
+  ],
+  "vision": [
+   "vis"
+  ],
+  "visual": [
+   "vis"
+  ],
+  "evident": [
+   "vis"
+  ],
+  "revision": [
+   "vis"
+  ],
+  "envision": [
+   "vis"
+  ],
+  "provision": [
+   "vis"
+  ],
+  "dictionary": [
+   "dict"
+  ],
+  "prediction": [
+   "dict"
+  ],
+  "contradict": [
+   "dict"
+  ],
+  "contradiction": [
+   "dict"
+  ],
+  "verdict": [
+   "dict"
+  ],
+  "dictate": [
+   "dict"
+  ],
+  "dictator": [
+   "dict"
+  ],
+  "addict": [
+   "dict"
+  ],
+  "describe": [
+   "scrib"
+  ],
+  "descriptive": [
+   "scrib"
+  ],
+  "prescribe": [
+   "scrib"
+  ],
+  "prescription": [
+   "scrib"
+  ],
+  "script": [
+   "scrib"
+  ],
+  "manuscript": [
+   "scrib"
+  ],
+  "subscribe": [
+   "scrib"
+  ],
+  "subscription": [
+   "scrib"
+  ],
+  "transcript": [
+   "scrib"
+  ],
+  "audience": [
+   "aud"
+  ],
+  "audio": [
+   "aud"
+  ],
+  "auditorium": [
+   "aud"
+  ],
+  "audit": [
+   "aud"
+  ],
+  "structure": [
+   "struct"
+  ],
+  "structural": [
+   "al",
+   "struct"
+  ],
+  "construct": [
+   "struct"
+  ],
+  "construction": [
+   "struct"
+  ],
+  "instruct": [
+   "struct"
+  ],
+  "instruction": [
+   "struct"
+  ],
+  "destruction": [
+   "struct"
+  ],
+  "destructive": [
+   "struct"
+  ],
+  "infrastructure": [
+   "struct"
+  ],
+  "fact": [
+   "fac"
+  ],
+  "factory": [
+   "fac"
+  ],
+  "perfect": [
+   "fac"
+  ],
+  "affect": [
+   "fac"
+  ],
+  "difficult": [
+   "fac"
+  ],
+  "effect": [
+   "fac"
+  ],
+  "factor": [
+   "fac"
+  ],
+  "manufacture": [
+   "fac"
+  ],
+  "efficient": [
+   "fac"
+  ],
+  "sufficient": [
+   "fac"
+  ],
+  "satisfaction": [
+   "fac"
+  ],
+  "facility": [
+   "fac"
+  ],
+  "artificial": [
+   "fac"
+  ],
+  "infection": [
+   "fac"
+  ],
+  "facilitate": [
+   "fac"
+  ],
+  "defect": [
+   "fac"
+  ],
+  "form": [
+   "form"
+  ],
+  "information": [
+   "form"
+  ],
+  "platform": [
+   "form"
+  ],
+  "inform": [
+   "form"
+  ],
+  "perform": [
+   "form"
+  ],
+  "performance": [
+   "form"
+  ],
+  "reform": [
+   "form"
+  ],
+  "formation": [
+   "form"
+  ],
+  "formula": [
+   "form"
+  ],
+  "conform": [
+   "form"
+  ],
+  "format": [
+   "form"
+  ],
+  "formulate": [
+   "form"
+  ],
+  "contract": [
+   "tract"
+  ],
+  "attract": [
+   "tract"
+  ],
+  "attraction": [
+   "tract"
+  ],
+  "subtract": [
+   "tract"
+  ],
+  "abstract": [
+   "tract"
+  ],
+  "distract": [
+   "tract"
+  ],
+  "distraction": [
+   "tract"
+  ],
+  "contractor": [
+   "tract"
+  ],
+  "biology": [
+   "bio",
+   "log"
+  ],
+  "geography": [
+   "geo",
+   "graph"
+  ],
+  "biography": [
+   "bio",
+   "graph"
+  ],
+  "autobiography": [
+   "bio"
+  ],
+  "biological": [
+   "al",
+   "bio",
+   "log"
+  ],
+  "antibiotic": [
+   "bio"
+  ],
+  "geometry": [
+   "geo"
+  ],
+  "geographical": [
+   "geo"
+  ],
+  "program": [
+   "graph"
+  ],
+  "kilogram": [
+   "graph"
+  ],
+  "photograph": [
+   "graph"
+  ],
+  "graph": [
+   "graph"
+  ],
+  "paragraph": [
+   "graph"
+  ],
+  "diagram": [
+   "graph"
+  ],
+  "autograph": [
+   "graph"
+  ],
+  "graphic": [
+   "graph"
+  ],
+  "telegraph": [
+   "graph",
+   "tele"
+  ],
+  "grammar": [
+   "graph"
+  ],
+  "calligraphy": [
+   "graph"
+  ],
+  "apologize": [
+   "log"
+  ],
+  "technology": [
+   "log"
+  ],
+  "psychology": [
+   "log"
+  ],
+  "ecology": [
+   "log"
+  ],
+  "ideology": [
+   "log"
+  ],
+  "sociology": [
+   "log"
+  ],
+  "archaeology": [
+   "log"
+  ],
+  "logic": [
+   "log"
+  ],
+  "logical": [
+   "log"
+  ],
+  "dialogue": [
+   "log"
+  ],
+  "analogy": [
+   "log"
+  ],
+  "microwave": [
+   "micro"
+  ],
+  "telephone": [
+   "phon",
+   "tele"
+  ],
+  "cellphone": [
+   "phon"
+  ],
+  "microphone": [
+   "micro",
+   "phon"
+  ],
+  "microscope": [
+   "micro"
+  ],
+  "telescope": [
+   "tele"
+  ],
+  "telecommunications": [
+   "tele"
+  ],
+  "earphone": [
+   "phon"
+  ],
+  "headphones": [
+   "phon"
+  ],
+  "symphony": [
+   "phon"
+  ],
+  "reproduction": [
+   "duc",
+   "re",
+   "tion"
+  ],
+  "transformation": [
+   "form",
+   "tion",
+   "trans"
+  ],
+  "disappointment": [
+   "dis",
+   "ment"
+  ],
+  "misunderstanding": [
+   "mis",
+   "mit"
+  ],
+  "unpredictable": [
+   "able",
+   "dict",
+   "un"
+  ]
+ },
+ "traps": {
+  "butterfly": [
+   "cmp"
+  ],
+  "uncle": [
+   "un"
+  ],
+  "uniform": [
+   "un"
+  ],
+  "until": [
+   "un"
+  ],
+  "understand": [
+   "un",
+   "under"
+  ],
+  "important": [
+   "in",
+   "port"
+  ],
+  "insect": [
+   "in"
+  ],
+  "interest": [
+   "in",
+   "inter"
+  ],
+  "discuss": [
+   "dis"
+  ],
+  "distance": [
+   "dis"
+  ],
+  "miss": [
+   "mis",
+   "mit"
+  ],
+  "missile": [
+   "mis"
+  ],
+  "really": [
+   "re"
+  ],
+  "ready": [
+   "re"
+  ],
+  "reason": [
+   "re"
+  ],
+  "restaurant": [
+   "re"
+  ],
+  "pretty": [
+   "pre"
+  ],
+  "pressure": [
+   "pre"
+  ],
+  "president": [
+   "pre"
+  ],
+  "postcard": [
+   "post"
+  ],
+  "foreign": [
+   "fore"
+  ],
+  "foreigner": [
+   "fore"
+  ],
+  "excellent": [
+   "ex"
+  ],
+  "expensive": [
+   "ex"
+  ],
+  "exercise": [
+   "ex"
+  ],
+  "interesting": [
+   "inter"
+  ],
+  "subject": [
+   "sub"
+  ],
+  "station": [
+   "tion"
+  ],
+  "question": [
+   "tion"
+  ],
+  "mansion": [
+   "tion"
+  ],
+  "comment": [
+   "ment"
+  ],
+  "apartment": [
+   "ment"
+  ],
+  "department": [
+   "ment"
+  ],
+  "business": [
+   "ness"
+  ],
+  "university": [
+   "ity"
+  ],
+  "city": [
+   "ity"
+  ],
+  "finance": [
+   "ance"
+  ],
+  "corner": [
+   "er"
+  ],
+  "butter": [
+   "er"
+  ],
+  "mother": [
+   "er"
+  ],
+  "summer": [
+   "er"
+  ],
+  "letter": [
+   "er"
+  ],
+  "flower": [
+   "er"
+  ],
+  "center": [
+   "er"
+  ],
+  "several": [
+   "al"
+  ],
+  "final": [
+   "al"
+  ],
+  "forgive": [
+   "ive"
+  ],
+  "curious": [
+   "ous"
+  ],
+  "priceless": [
+   "less"
+  ],
+  "size": [
+   "ize"
+  ],
+  "prize": [
+   "ize"
+  ],
+  "listen": [
+   "en"
+  ],
+  "kitten": [
+   "en"
+  ],
+  "dozen": [
+   "en"
+  ],
+  "considerate": [
+   "ate"
+  ],
+  "friendly": [
+   "ly"
+  ],
+  "lovely": [
+   "ly"
+  ],
+  "likely": [
+   "ly"
+  ],
+  "portion": [
+   "port"
+  ],
+  "portrait": [
+   "port"
+  ],
+  "limit": [
+   "mit"
+  ],
+  "summit": [
+   "mit"
+  ],
+  "vomit": [
+   "mit"
+  ],
+  "imitate": [
+   "mit"
+  ],
+  "duck": [
+   "duc"
+  ],
+  "spice": [
+   "spec"
+  ],
+  "spicy": [
+   "spec"
+  ],
+  "divide": [
+   "vis"
+  ],
+  "individual": [
+   "vis"
+  ],
+  "vivid": [
+   "vis"
+  ],
+  "fraud": [
+   "aud"
+  ],
+  "applaud": [
+   "aud"
+  ],
+  "face": [
+   "fac"
+  ],
+  "facial": [
+   "fac"
+  ],
+  "surface": [
+   "fac"
+  ],
+  "fiction": [
+   "fac"
+  ],
+  "former": [
+   "form"
+  ],
+  "pigeon": [
+   "geo"
+  ],
+  "gorgeous": [
+   "geo"
+  ],
+  "surgeon": [
+   "geo"
+  ],
+  "slogan": [
+   "log"
+  ]
+ }
+}

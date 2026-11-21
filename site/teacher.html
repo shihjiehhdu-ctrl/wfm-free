@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>我的詞族地圖・老師後台</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#08333B">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="app.css">
+<style>
+.tgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:20px;align-items:start}
+.qlist{display:flex;flex-direction:column;gap:8px;max-height:calc(100vh - 220px);overflow-y:auto}
+.qitem{display:flex;flex-direction:column;gap:3px;text-align:left;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.qitem[aria-current="true"]{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink) inset}
+.qitem .l1{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:.78rem;color:var(--muted)}
+.qitem .w{font-family:var(--mono);font-weight:600;font-size:1.05rem;color:var(--ink)}
+.qitem .d{font-size:.86rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.editor .row{margin:10px 0}
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}
+.stat{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.stat b{display:block;font-family:var(--mono);font-size:1.8rem;color:var(--ink);font-variant-numeric:tabular-nums}
+.stat span{font-size:.82rem;color:var(--muted)}
+.bars{display:flex;flex-direction:column;gap:6px}
+.bar{display:grid;grid-template-columns:minmax(120px,190px) 1fr 44px;gap:10px;align-items:center;font-size:.88rem}
+.bar .lab{font-family:var(--mono);font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar .track{height:14px;background:var(--mist);border-radius:4px;overflow:hidden}
+.bar .fill{display:block;height:100%;background:var(--teal);border-radius:0 4px 4px 0}
+.bar .v{font-family:var(--mono);text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+/* live */
+.live{position:fixed;inset:0;background:var(--ink);color:#fff;z-index:100;display:flex;flex-direction:column;padding:max(24px,env(safe-area-inset-top)) max(32px,env(safe-area-inset-right)) 24px max(32px,env(safe-area-inset-left))}
+.live .lt{display:flex;gap:14px;align-items:center;font-family:var(--mono);font-size:.9rem;color:var(--on-ink)}
+.live .lt .sp{flex:1}
+.live .lt button{background:transparent;border:1.5px solid rgba(255,255,255,.35);color:#fff;border-radius:999px;padding:6px 14px;font-weight:600}
+.live .stage{flex:1;display:flex;flex-direction:column;justify-content:center;gap:22px;max-width:1100px;margin:0 auto;width:100%}
+.live .who{font-size:1.1rem;color:var(--amber)}
+.live .bigw{font-family:var(--mono);font-size:clamp(2.6rem,8vw,5.5rem);font-weight:600;line-height:1.05;overflow-wrap:anywhere}
+.live .parts{background:transparent;border-color:rgba(255,255,255,.2);min-height:0}
+.live .part{background:#0F4550;border-color:rgba(255,255,255,.25)} .live .part b{color:#fff;font-size:1.5rem} .live .part span{color:var(--on-ink);font-size:.95rem}
+.live .part.root{background:#4A3A14;border-color:var(--amber)} .live .part.pre{background:#123F52} .live .part.suf{background:#11433E}
+.live .sen{font-family:Georgia,serif;font-style:italic;font-size:clamp(1.2rem,2.6vw,1.8rem);color:#fff;border-left:4px solid var(--amber);padding-left:16px}
+.live .dbt{font-size:clamp(1.1rem,2.2vw,1.5rem);background:rgba(232,163,61,.14);border-radius:14px;padding:14px 18px}
+.live .ansbox{font-size:clamp(1.05rem,2vw,1.4rem);background:#fff;color:var(--ink);border-radius:14px;padding:16px 20px}
+.live .ansbox b{color:var(--amber-deep)}
+.live .hintline{font-size:.82rem;color:var(--on-ink);text-align:center}
+@media (max-width:900px){.tgrid{grid-template-columns:1fr}.qlist{max-height:none}}
+</style>
+</head>
+<body>
+
+<div class="login" id="loginView" hidden>
+  <div class="panel">
+    <div class="app-name">我的詞族地圖<small>老師後台</small></div>
+    <form id="loginForm" novalidate>
+      <div class="field"><label for="tc">老師代碼</label><input class="in token-in" id="tc" autocomplete="off" autocapitalize="characters" spellcheck="false" style="letter-spacing:.15em"></div>
+      <div class="actions"><button class="btn btn-primary" type="submit">登入</button><span class="err" id="loginErr" role="alert"></span></div>
+    </form>
+    <p class="hint" id="previewHint" hidden>預覽模式：老師代碼 <b class="mono">TDEMO</b>。</p>
+  </div>
+</div>
+
+<div id="appView" hidden>
+<header class="top">
+  <div class="wrap gutter">
+    <div class="app-name">我的詞族地圖<small>Teacher · 老師後台</small></div>
+    <div class="spacer"></div>
+    <label class="unitpick" for="clsSel"><span class="sr">班級</span><select id="clsSel"></select></label>
+    <span class="count-pill" id="who"></span>
+    <button class="ghost-btn" id="logout" type="button">登出</button>
+  </div>
+  <div class="wrap gutter">
+    <nav class="tabs" role="tablist">
+      <button class="tab" role="tab" id="tab-q" type="button">提問</button>
+      <button class="tab" role="tab" id="tab-live" type="button">直播</button>
+      <button class="tab" role="tab" id="tab-stats" type="button">第 16 場回顧</button>
+    </nav>
+  </div>
+</header>
+<div class="banner" id="previewBanner" hidden><div class="wrap gutter">預覽模式：沒有連到後端，資料只存在這台裝置。</div></div>
+<main><div class="wrap gutter">
+  <section id="v-q">
+    <div class="wallbar">
+      <select class="in" id="fWeek" aria-label="週次" style="width:auto"></select>
+      <select class="in" id="fStatus" aria-label="狀態" style="width:auto"><option value="">全部狀態</option><option>待回答</option><option>排入直播</option><option>已回答</option></select>
+      <button class="btn btn-quiet btn-sm" type="button" id="reload">重新整理</button>
+      <span class="hint" id="qCount"></span>
+    </div>
+    <div class="tgrid">
+      <div class="qlist" id="qlist"></div>
+      <div class="panel editor" id="editor"><div class="locked">從左邊選一個提問。</div></div>
+    </div>
+  </section>
+  <section id="v-live" hidden>
+    <div class="panel">
+      <span class="eyebrow">直播展示</span>
+      <h2>一題一題回答上週的提問</h2>
+      <p class="sub">第 N 週的直播，前 45 分鐘回答第 N−1 週的提問。選好週次和範圍，按「開始」會全螢幕顯示。<br>鍵盤：← → 換題　空白鍵 顯示／隱藏回答　A 標成已回答　Esc 離開</p>
+      <div class="wallbar">
+        <select class="in" id="lWeek" aria-label="週次" style="width:auto"></select>
+        <select class="in" id="lScope" aria-label="範圍" style="width:auto"><option value="排入直播">只有「排入直播」</option><option value="open">還沒回答的（待回答＋排入直播）</option><option value="">這週全部</option></select>
+        <button class="btn btn-primary" type="button" id="liveStart">開始</button>
+        <span class="hint" id="liveInfo"></span>
+      </div>
+    </div>
+  </section>
+  <section id="v-stats" hidden><div id="statsBox"></div></section>
+</div></main>
+</div>
+
+<div class="live" id="live" hidden></div>
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script src="config.js"></script>
+<script src="api.js"></script>
+<script src="teacher.js"></script>
+</body>
+</html>

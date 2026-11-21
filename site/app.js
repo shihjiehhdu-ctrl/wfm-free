@@ -1,130 +1,402 @@
-/* 我的詞族地圖（免費版／課程版／進階版共用同一份程式）
- * 版本由後端「學生」工作表的「版本」欄決定，登入時回傳 tier、features、pack。
- * 資料流：本機優先（localStorage）→ 背景同步到 Apps Script。
- * Entry 結構與課程版、進階版相同，升級時直接沿用。
+/* 我的詞族地圖・學生端
+ * 同一份程式給免費版、課程版、進階版用；版本由後端「學生」工作表的「版本」欄決定。
+ * 資料先存在這台裝置（localStorage），背景同步到 Apps Script。
  */
 (() => {
 'use strict';
-const cfg = window.WFM_CONFIG || {};
-const API = window.WFM_API;
-const STORE_KEY = 'wfm.free.v1';
-const SCHEMA = 1;
-
-/* ---------- helpers ---------- */
+const API = window.WFM_API, CFG = window.WFM_CONFIG || {};
 const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const now = () => Date.now();
 const POS_LABEL = {n:'名詞', v:'動詞', adj:'形容詞', adv:'副詞', other:'其他'};
 const TYPE_LABEL = {pre:'字首', root:'字根', suf:'字尾', base:'字基', cmp:'複合字'};
+const ERR = {
+  bad_token:'找不到這個登入碼，請檢查是否輸入正確。', disabled:'這個登入碼已停用，請聯絡老師。', busy:'伺服器忙碌中，請稍後再試。',
+  feature_locked:'這是課程版的功能。', no_class:'你還沒有加入班級。', missing_fields:'有欄位還沒填。', own_question:'不能回應自己的提問。',
+  network:'網路連線有問題，請稍後再試。', server_error:'伺服器發生錯誤，請稍後再試。'
+};
+const errMsg = c => ERR[c] || ('發生錯誤：' + c);
+
+/* ---------- state ---------- */
+let S = null;          // 登入後的資料
+let P = null;          // 內容包
+let MBY = {}, LIVE = [], KEY = {}, TRAPS = {}, COMP = {};
+let L = null;          // 這台裝置的紀錄 {entries:{}, deletes:[], dirty:{}, progress:{}, progressDirty:false}
+let storeOK = true;
+const ui = {tab:'course', unit:1, clarity:'透明', subject:'', mapSel:null, review:null, wallWeek:0, wall:null, openSeg:null, askFor:null, lastCheck:null};
+
+function lsGet(k){ try { return localStorage.getItem(k); } catch (e) { storeOK = false; return null; } }
+function lsSet(k, v){ try { localStorage.setItem(k, v); return true; } catch (e) { storeOK = false; return false; } }
+function lsDel(k){ try { localStorage.removeItem(k); } catch (e) {} }
+const LKEY = () => 'wfm.v2.' + S.token;
+function saveLocal(){ if (!lsSet(LKEY(), JSON.stringify(L))) $('#storeWarn').hidden = false; }
+function loadLocal(token){
+  try { const d = JSON.parse(lsGet('wfm.v2.' + token) || 'null'); if (d && d.entries) return d; } catch (e) {}
+  return {entries:{}, deletes:[], dirty:{}, progress:{}, progressDirty:false};
+}
 function toast(msg){
   const t = $('#toast'); t.textContent = msg; t.hidden = false;
-  clearTimeout(toast._t); toast._t = setTimeout(() => { t.hidden = true; }, 2400);
+  clearTimeout(toast._t); toast._t = setTimeout(() => { t.hidden = true; }, 2600);
 }
 
-/* ---------- content pack ---------- */
-let PACK, M, MBY, UNITS, COMP;
-const mLabel = m => m.label || (m.t === 'pre' ? m.forms[0] + '-' : m.t === 'suf' ? '-' + m.forms[0] : m.forms[0]);
+/* ---------- boot ---------- */
+async function boot(){
+  if (API.preview) { $('#previewHint').hidden = false; }
+  if (CFG.CONTACT) $('#contactLine').innerHTML = `　<a href="${esc(CFG.CONTACT)}" target="_blank" rel="noopener">需要協助</a>`;
+  const q = new URLSearchParams(location.search);
+  let token = (q.get('t') || '').trim().toUpperCase();
+  if (token) { lsSet('wfm.token', token); history.replaceState(null, '', location.pathname); }
+  else token = (lsGet('wfm.token') || '').toUpperCase();
+  if (!token) return showLogin();
+  await login(token, true);
+}
+function showLogin(msg){
+  $('#appView').hidden = true; $('#loginView').hidden = false;
+  $('#loginErr').textContent = msg || '';
+  $('#tokenIn').focus();
+}
+$('#loginForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const t = $('#tokenIn').value.trim().toUpperCase();
+  if (!/^[A-Z0-9]{6}$/.test(t)) { $('#loginErr').textContent = '登入碼是 6 個英文字母或數字。'; return; }
+  login(t, false);
+});
 
-/* ---------- storage ---------- */
-let storeOK = true;
-function loadLocal(){
-  try { const d = JSON.parse(localStorage.getItem(STORE_KEY)); if (d && d.schema === SCHEMA) return d; }
-  catch (e) { storeOK = false; }
-  return null;
+async function login(token, silent){
+  $('#loginBtn').disabled = true; $('#loginErr').textContent = '';
+  let res;
+  try { res = await API.call('login', {token}); }
+  catch (e) { res = null; }
+  $('#loginBtn').disabled = false;
+  if (!res) {
+    // 離線：用這台裝置上次的資料開啟
+    const cached = (() => { try { return JSON.parse(lsGet('wfm.session.' + token) || 'null'); } catch (e) { return null; } })();
+    if (cached) { await start(cached, token, true); $('#offlineBanner').hidden = false; return; }
+    return showLogin(errMsg('network'));
+  }
+  if (!res.ok) { if (res.error === 'bad_token' || res.error === 'disabled') lsDel('wfm.token'); return showLogin(errMsg(res.error)); }
+  lsSet('wfm.token', token);
+  lsSet('wfm.session.' + token, JSON.stringify(Object.assign({}, res, {entries:[]})));
+  await start(res, token, false);
 }
-function save(){
-  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
-  catch (e) { storeOK = false; $('#storeWarn').hidden = false; }
+
+async function start(res, token, offline){
+  S = {token, student:res.student, tier:res.tier, tierInfo:res.tierInfo, cls:res.cls, units:res.units || [], questions:res.questions || []};
+  try {
+    const r = await fetch('content/' + S.tierInfo.pack + '.json', {cache:'no-cache'});
+    P = await r.json();
+  } catch (e) { return showLogin('內容包載入失敗，請重新整理頁面。'); }
+  MBY = Object.fromEntries(P.morphemes.map(m => [m.id, m]));
+  LIVE = P.morphemes.filter(m => !m.display);
+  KEY = P.key || {}; TRAPS = P.traps || {}; COMP = P.compounds || {};
+  L = loadLocal(token);
+  if (!offline) merge(res.entries || [], res.progress || {});
+  const firstOpen = (P.units.find(u => S.units.includes(u.unit)) || P.units[0]).unit;
+  ui.unit = isOpen(L.progress.unit) ? L.progress.unit : firstOpen;
+  L.progress.unit = ui.unit;
+  L.progress.maxUnit = Math.max(L.progress.maxUnit || 0, ui.unit);
+  saveLocal();
+  $('#loginView').hidden = true; $('#appView').hidden = false;
+  $('#previewBanner').hidden = !API.preview;
+  $('#storeWarn').hidden = storeOK;
+  buildUnitSelect();
+  renderAll();
+  if (Object.keys(L.dirty).length || L.deletes.length || L.progressDirty) scheduleSync(300);
 }
-let state = null;
-const blankState = (token, child) => ({schema:SCHEMA, token, child, unit:1, entries:[], progress:{}, pending:{up:{}, del:[], progress:false}, lastSync:0});
-let ui = {tab:'lesson', seg:null, clarity:'透明', mapSel:null, mapWord:null, review:null};
+
+function merge(serverEntries, serverProgress){
+  const seen = new Set();
+  serverEntries.forEach(en => {
+    seen.add(en.id);
+    if (L.deletes.includes(en.id)) return;
+    const mine = L.entries[en.id];
+    if (!mine || (!L.dirty[en.id] && (en.updated || 0) >= (mine.updated || 0))) L.entries[en.id] = Object.assign(en, {_s:1});
+  });
+  Object.values(L.entries).forEach(en => {
+    if (seen.has(en.id)) return;
+    if (en._s && !L.dirty[en.id]) delete L.entries[en.id];     // 在別台裝置刪掉了
+    else L.dirty[en.id] = 1;                                     // 還沒上傳
+  });
+  const p = L.progress, sp = serverProgress || {};
+  p.done = Object.assign({}, sp.done || {}, p.done || {});
+  p.answers = Object.assign({}, sp.answers || {}, p.answers || {});
+  p.maxUnit = Math.max(p.maxUnit || 0, sp.maxUnit || 0);
+  if (!p.unit) p.unit = sp.unit;
+}
 
 /* ---------- sync ---------- */
 let syncTimer = null, syncing = false;
-function markEntry(e){ e.updated = now(); state.pending.up[e.id] = e; save(); scheduleSync(); }
-function markDelete(id){ delete state.pending.up[id]; state.pending.del.push(id); save(); scheduleSync(); }
-function markProgress(){ state.pending.progress = true; save(); scheduleSync(); }
-function hasPending(){ return Object.keys(state.pending.up).length || state.pending.del.length || state.pending.progress; }
-function scheduleSync(delay = 1500){ clearTimeout(syncTimer); syncTimer = setTimeout(syncNow, delay); renderSync(); }
-async function syncNow(opts){
-  if (!state || syncing || !hasPending()) { renderSync(); return true; }
-  syncing = true; renderSync();
-  const ups = Object.values(state.pending.up), dels = [...state.pending.del], sendProg = state.pending.progress;
+function scheduleSync(ms){ setDot('dirty'); clearTimeout(syncTimer); syncTimer = setTimeout(syncNow, ms ?? 1500); }
+function setDot(s){ const d = $('#syncDot'); d.className = 'sync' + (s === 'ok' ? '' : ' ' + s); d.title = {ok:'已同步', dirty:'等待同步', err:'同步失敗，稍後會再試'}[s]; }
+function payload(){
+  const ids = Object.keys(L.dirty);
+  return {ids, body:{token:S.token, upserts: ids.map(id => L.entries[id]).filter(Boolean).map(stripLocal), deletes:L.deletes.slice(), progress: L.progressDirty ? L.progress : undefined}};
+}
+function stripLocal(en){ const o = Object.assign({}, en); delete o._s; return o; }
+async function syncNow(keepalive){
+  if (syncing && !keepalive) { scheduleSync(800); return; }
+  const {ids, body} = payload();
+  if (!ids.length && !body.deletes.length && !body.progress) { setDot('ok'); return; }
+  const stamp = Object.fromEntries(ids.map(id => [id, L.entries[id] && L.entries[id].updated]));
+  syncing = true;
   try {
-    const out = await API.call('sync', {token:state.token, upserts:ups, deletes:dels, progress: sendProg ? state.progress : null}, opts);
-    if (!out.ok) {
-      if (out.code === 'bad_token') { syncing = false; forceLogout('這個 token 已失效，請重新登入。'); return false; }
-      throw new Error(out.message || 'sync failed');
-    }
-    ups.forEach(e => { if (state.pending.up[e.id] && state.pending.up[e.id].updated === e.updated) delete state.pending.up[e.id]; });
-    state.pending.del = state.pending.del.filter(id => !dels.includes(id));
-    if (sendProg) state.pending.progress = false;
-    state.lastSync = now(); save();
-    syncing = false; renderSync();
-    if (hasPending()) scheduleSync(500);
-    return true;
-  } catch (err) {
-    syncing = false; renderSync(true);
-    scheduleSync(20000);
-    return false;
-  }
+    const res = await API.call('sync', body, {keepalive});
+    if (!res || !res.ok) throw new Error(res && res.error || 'sync');
+    ids.forEach(id => { const en = L.entries[id]; if (!en || en.updated === stamp[id]) { delete L.dirty[id]; if (en) en._s = 1; } });
+    L.deletes = L.deletes.filter(id => !body.deletes.includes(id));
+    if (body.progress) L.progressDirty = false;
+    if (res.questions) { S.questions = res.questions; }
+    saveLocal(); setDot(Object.keys(L.dirty).length ? 'dirty' : 'ok');
+    $('#offlineBanner').hidden = true;
+    if (res.questions && !keepalive) refreshAfterSync();
+  } catch (e) {
+    setDot('err'); clearTimeout(syncTimer); syncTimer = setTimeout(syncNow, 20000);
+  } finally { syncing = false; }
 }
-function renderSync(failed){
-  const el = $('#syncPill'); if (!el || !state) return;
-  el.classList.toggle('warn', !!failed);
-  if (syncing) el.textContent = '同步中…';
-  else if (failed) el.textContent = '離線，稍後同步';
-  else if (hasPending()) el.textContent = '等待同步';
-  else el.textContent = state.lastSync ? '已備份' : '';
-}
-window.addEventListener('online', () => scheduleSync(300));
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && state && hasPending()) syncNow({keepalive:true}); });
+function refreshAfterSync(){ if (ui.tab === 'capture') renderCaptureSide(); if (ui.tab === 'map') renderMap(); }
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && S) syncNow(true); });
 
-/* ---------- login ---------- */
-function showGate(msg){
-  $('#app').hidden = true; $('#gate').hidden = false;
-  $('#gErr').textContent = msg || '';
-  $('#gDemo').hidden = !API.demo;
-  $('#gApply').href = cfg.APPLY_URL || 'apply.html';
-  setTimeout(() => $('#gToken').focus(), 30);
+function putEntry(en){ en.updated = Date.now(); L.entries[en.id] = en; L.dirty[en.id] = 1; saveLocal(); scheduleSync(); }
+function delEntry(id){ const en = L.entries[id]; delete L.entries[id]; delete L.dirty[id]; if (en && en._s) L.deletes.push(id); saveLocal(); scheduleSync(); }
+function setProgress(fn){ fn(L.progress); L.progressDirty = true; saveLocal(); scheduleSync(2500); }
+const entries = () => Object.values(L.entries);
+
+/* ---------- units ---------- */
+const unitObj = n => P.units.find(u => u.unit === n);
+const isOpen = n => !!n && S.units.includes(n) && !!unitObj(n);
+const maxReached = () => Math.max(L.progress.maxUnit || 0, ui.unit);
+const stageOf = n => P.stages.find(s => n >= s.from && n <= s.to) || P.stages[0];
+const unlocked = m => !m.display && m.unit <= maxReached();
+const mLabel = m => m.label || (m.t === 'pre' ? m.forms[0] + '-' : m.t === 'suf' ? '-' + m.forms[0] : m.forms[0] || m.id);
+const feat = f => !!(S.tierInfo.features || {})[f];
+
+function buildUnitSelect(){
+  const sel = $('#unitSel');
+  sel.innerHTML = P.units.map(u => {
+    const open = isOpen(u.unit);
+    return `<option value="${u.unit}" ${open ? '' : 'disabled'}>W${u.unit} ${esc(u.title.length > 14 ? u.title.slice(0, 14) + '…' : u.title)}${open ? '' : '（尚未開放）'}</option>`;
+  }).join('');
 }
-function forceLogout(msg){ try { localStorage.removeItem(STORE_KEY); } catch (e) {} state = null; showGate(msg); }
-function mergeServer(serverEntries, serverProgress){
-  const byId = new Map(state.entries.map(e => [e.id, e]));
-  (serverEntries || []).forEach(se => {
-    if (state.pending.del.includes(se.id)) return;
-    const le = byId.get(se.id);
-    if (!le || (se.updated || 0) > (le.updated || 0)) byId.set(se.id, se);
+$('#unitSel').addEventListener('change', e => {
+  const n = +e.target.value; if (!isOpen(n)) return;
+  ui.unit = n; ui.openSeg = null;
+  setProgress(p => { p.unit = n; p.maxUnit = Math.max(p.maxUnit || 0, n); });
+  renderAll();
+});
+
+function renderHeader(){
+  $('#unitSel').value = ui.unit;
+  const st = stageOf(ui.unit);
+  $('#stagePill').textContent = `${st.name}`;
+  $('#stagePill').title = `第${'一二三四'[st.n - 1]}階段`;
+  $('#tierPill').textContent = S.tierInfo.label + (S.cls ? ' · ' + S.cls.name : '');
+  $('#countPill').textContent = `${entries().length} 個字`;
+  const wcOpen = maxReached() >= 4;
+  $('#wcLock').textContent = wcOpen ? '' : 'W4';
+  $('#tab-wc').classList.toggle('off', !wcOpen);
+  $('#wallLock').textContent = feat('wall') ? '' : (S.tier === 'advanced' ? '' : '課程版');
+  $('#tab-wall').classList.toggle('off', !feat('wall'));
+  $('#subjectField').hidden = maxReached() < 13;
+}
+
+/* ---------- tabs ---------- */
+const TABS = ['course','capture','map','wc','review','wall'];
+TABS.forEach(t => $('#tab-' + t).addEventListener('click', () => go(t)));
+function go(t){ ui.tab = t; renderTabs(); renderView(); window.scrollTo({top:0}); }
+function renderTabs(){
+  TABS.forEach(t => { $('#tab-' + t).setAttribute('aria-selected', String(ui.tab === t)); $('#v-' + t).hidden = ui.tab !== t; });
+}
+function renderView(){
+  ({course:renderCourse, capture:renderCaptureSide, map:renderMap, wc:renderWC, review:renderReview, wall:renderWall})[ui.tab]();
+}
+function renderAll(){ renderHeader(); renderTabs(); renderView(); refreshSugs(); refreshParts(); }
+
+/* ---------- 課程 ---------- */
+function rich(s){ return esc(s).replace(/\*([^*]+)\*/g, '<em class="en" lang="en">$1</em>').replace(/〔停頓\s*[\d.]+\s*秒〕/g, ''); }
+function slideHTML(s){ const [a, b] = s.split('｜'); return `<div class="slide">${b !== undefined ? `<b>${rich(a)}</b><span>${rich(b)}</span>` : `<span>${rich(a)}</span>`}</div>`; }
+
+function renderCourse(){
+  const box = $('#v-course'), u = unitObj(ui.unit);
+  if (!u) { box.innerHTML = '<div class="panel locked"><div class="big">找不到這個單元</div></div>'; return; }
+  const st = stageOf(u.unit);
+  const done = u.segments.filter(s => L.progress.done && L.progress.done[s.id]).length;
+  if (ui.openSeg === null) { const f = u.segments.find(s => !(L.progress.done || {})[s.id]); ui.openSeg = f ? f.id : ''; }
+  const morphs = u.morphemes.map(id => MBY[id]).filter(Boolean);
+  box.innerHTML = `
+  <div class="grid">
+    <div class="stack">
+      <div class="panel">
+        <span class="eyebrow">W${u.unit} · 第${'一二三四'[st.n - 1]}階段 ${esc(st.name)}</span>
+        <div class="unit-head"><span class="big">${esc(u.title)}</span></div>
+        <div class="unit-progress" aria-hidden="true"><span style="width:${u.segments.length ? done / u.segments.length * 100 : 0}%"></span></div>
+        <p class="sub" style="margin:0">已完成 ${done} / ${u.segments.length} 段講解${S.cls && S.cls.live ? `　·　直播時段：${esc(S.cls.live)}` : ''}</p>
+      </div>
+      <div class="segs">${u.segments.map((s, i) => segHTML(s, i)).join('')}</div>
+      <div class="taskbox">
+        <h3>本週任務</h3>
+        <p style="margin:0 0 10px">${esc(u.task)}</p>
+        <div class="actions"><button class="btn btn-primary btn-sm" type="button" data-go="capture">去採集</button>
+        ${feat('wall') ? '<button class="btn btn-quiet btn-sm" type="button" data-go="wall">看班級牆</button>' : ''}</div>
+      </div>
+    </div>
+    <div class="side-gap">
+      <div class="panel">
+        <span class="eyebrow">這週的零件</span>
+        <h2>${morphs.length ? '在書裡找這些詞素' : '整合所有學過的詞素'}</h2>
+        <p class="sub">${morphs.length ? '數字是你目前收集到的字數。' : '這週沒有新的零件，把前面學過的全部用上。'}</p>
+        <div class="mlist">${(morphs.length ? morphs : []).map(m => `<div class="mrow"><span class="f">${esc(mLabel(m))}</span><span class="mean">${esc(m.mean)}</span><span class="n">${countFor(m.id)} 個</span></div>`).join('')}</div>
+      </div>
+      ${S.tier === 'free' ? `<div class="panel"><span class="eyebrow">免費版</span><h2>完整課程有 15 週</h2><p class="sub" style="margin:0">免費版包含 W1、W4、W9、W14 四個代表單元。完整課程會一週一週帶你學完所有字首、字尾和字根，還有班級牆、提問和每週直播。</p></div>` : ''}
+      ${S.tier === 'course' && S.cls ? `<div class="panel"><span class="eyebrow">我的班級</span><h2>${esc(S.cls.name)}</h2><p class="sub" style="margin:0">${esc(S.cls.teacher || '')}${S.cls.live ? '　·　' + esc(S.cls.live) : ''}<br>拿不準的字，在採集紀錄上按「提問」。下週直播，老師會回答。</p></div>` : ''}
+    </div>
+  </div>`;
+}
+
+function segHTML(s, i){
+  const done = !!(L.progress.done || {})[s.id], open = ui.openSeg === s.id;
+  return `<article class="segcard" data-seg="${esc(s.id)}">
+    <header role="button" tabindex="0" aria-expanded="${open}" data-toggle="${esc(s.id)}">
+      <span class="num">${String(i).padStart(2, '0')}</span><span class="t">${esc(s.title)}</span>
+      ${done ? '<span class="done">完成</span>' : ''}<span class="min">${s.minutes} 分</span>
+    </header>
+    ${open ? `<div class="segbody">
+      <div class="player"><button class="btn btn-primary btn-sm" type="button" data-play="${esc(s.id)}">▶ 播放講解</button><span class="state" id="ps-${esc(s.id)}"></span></div>
+      ${s.slides.length ? `<div class="slides">${s.slides.map(slideHTML).join('')}</div>` : ''}
+      <details class="script"><summary>講解文字</summary>${s.script.map(p => `<p>${rich(p)}</p>`).join('')}</details>
+      ${s.passage ? passageHTML(s.passage) : ''}
+      ${s.checks.length ? `<div class="checks">${s.checks.map((c, k) => checkHTML(s.id, c, k)).join('')}</div>` : ''}
+      <div class="actions" style="margin-top:14px"><button class="btn ${done ? 'btn-quiet' : 'btn-primary'} btn-sm" type="button" data-done="${esc(s.id)}">${done ? '標成還沒完成' : '這段完成了'}</button></div>
+    </div>` : ''}
+  </article>`;
+}
+
+function checkHTML(sid, c, k){
+  const key = sid + ':' + k, ans = (L.progress.answers || {})[key];
+  if (c.type === 'mcq') {
+    const picked = typeof ans === 'number' ? ans : null;
+    return `<div class="qbox"><div class="q">${rich(c.q)}</div><div class="opts">${c.options.map((o, j) => {
+      const cls = picked === null ? '' : j === c.answer ? 'right' : j === picked ? 'wrong' : '';
+      return `<button type="button" class="opt ${cls}" data-mcq="${esc(key)}" data-j="${j}">${rich(o)}</button>`;
+    }).join('')}</div>${picked !== null ? `<div class="fb"><b>${picked === c.answer ? '答對了。' : '再想想：正確答案是「' + rich(c.options[c.answer]) + '」。'}</b> ${rich(c.explain || '')}</div>` : ''}</div>`;
+  }
+  const shown = ans && ans.shown;
+  return `<div class="qbox"><div class="q">${rich(c.q)}</div>
+    <textarea class="in" data-open="${esc(key)}" placeholder="先寫下你的答案">${esc(ans && ans.text || '')}</textarea>
+    <div class="actions"><button class="btn btn-quiet btn-sm" type="button" data-ref="${esc(key)}">${shown ? '收起參考答案' : '看參考答案'}</button></div>
+    ${shown ? `<div class="fb"><b>參考答案：</b>${rich(c.ref)}</div>` : ''}</div>`;
+}
+
+function passageHTML(p){
+  const have = new Set(entries().map(e => e.word));
+  const paras = p.paras.map(par => {
+    const sentences = par.match(/[^.!?]+[.!?]+["”]?\s*/g) || [par];
+    return '<p>' + sentences.map(sen => {
+      const plain = sen.replace(/\{\{([^|}]+)\|([^}]+)\}\}/g, '$1').trim();
+      return esc(sen).replace(/\{\{([^|}]+)\|([^}]+)\}\}/g, (_, surf, lem) =>
+        `<button type="button" class="pw ${have.has(lem) ? 'have' : ''}" data-pw="${esc(lem)}" data-sen="${esc(plain)}">${surf}</button>`);
+    }).join('') + '</p>';
+  }).join('');
+  return `<div class="passage" data-title="${esc(p.title)}" data-subject="${esc(p.subject || '')}"><h3 lang="en">${esc(p.title)}</h3><div lang="en">${paras}</div>
+    <p class="hint" style="font-family:var(--body);margin:0">點有底線的字，可以直接帶著原句去採集。實線底線＝已經在你的地圖上。</p></div>`;
+}
+
+$('#v-course').addEventListener('click', e => {
+  const t = e.target.closest('[data-toggle]');
+  if (t) { stopAudio(); ui.openSeg = ui.openSeg === t.dataset.toggle ? '' : t.dataset.toggle; renderCourse(); return; }
+  const g = e.target.closest('[data-go]'); if (g) { go(g.dataset.go); return; }
+  const d = e.target.closest('[data-done]');
+  if (d) {
+    const id = d.dataset.done, was = !!(L.progress.done || {})[id];
+    setProgress(p => { p.done = p.done || {}; if (was) delete p.done[id]; else p.done[id] = Date.now(); });
+    if (!was) { const u = unitObj(ui.unit), i = u.segments.findIndex(s => s.id === id), nx = u.segments[i + 1]; ui.openSeg = nx ? nx.id : ''; stopAudio(); }
+    renderCourse(); return;
+  }
+  const pl = e.target.closest('[data-play]'); if (pl) { togglePlay(pl.dataset.play, pl); return; }
+  const mq = e.target.closest('[data-mcq]');
+  if (mq) { const k = mq.dataset.mcq; if (typeof (L.progress.answers || {})[k] === 'number') return; setProgress(p => { p.answers = p.answers || {}; p.answers[k] = +mq.dataset.j; }); renderCourse(); return; }
+  const rf = e.target.closest('[data-ref]');
+  if (rf) { const k = rf.dataset.ref, ta = document.querySelector(`[data-open="${CSS.escape(k)}"]`);
+    setProgress(p => { p.answers = p.answers || {}; const o = p.answers[k] || {}; p.answers[k] = {text: ta ? ta.value : o.text || '', shown: !o.shown}; }); renderCourse(); return; }
+  const pw = e.target.closest('[data-pw]');
+  if (pw) {
+    const box = pw.closest('.passage');
+    resetForm();
+    fWord.value = pw.dataset.pw; $('#f-sentence').value = pw.dataset.sen; $('#f-book').value = box.dataset.title;
+    if (box.dataset.subject) setSeg('#subject', box.dataset.subject);
+    fSplit.value = pw.dataset.pw; fSplit.dataset.auto = '1';
+    go('capture'); refreshSugs(); refreshParts(); fSplit.focus();
+  }
+});
+$('#v-course').addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-toggle]')) { e.preventDefault(); e.target.click(); } });
+$('#v-course').addEventListener('change', e => {
+  const ta = e.target.closest('[data-open]'); if (!ta) return;
+  setProgress(p => { p.answers = p.answers || {}; const o = p.answers[ta.dataset.open] || {}; p.answers[ta.dataset.open] = {text: ta.value, shown: !!o.shown}; });
+});
+
+/* ---------- 語音：mp3 優先，沒有就用瀏覽器語音 ---------- */
+let audio = null, tts = null, playing = null;
+function stopAudio(){
+  if (audio) { audio.pause(); audio = null; }
+  if (tts) { tts.cancel = true; try { speechSynthesis.cancel(); } catch (e) {} tts = null; }
+  playing = null;
+  $$('[data-play]').forEach(b => { b.textContent = '▶ 播放講解'; });
+}
+function findSeg(id){ for (const u of P.units) for (const s of u.segments) if (s.id === id) return s; return null; }
+function togglePlay(id, btn){
+  if (playing === id) { stopAudio(); return; }
+  stopAudio();
+  const s = findSeg(id), state = $('#ps-' + CSS.escape(id));
+  playing = id; btn.textContent = '■ 停止';
+  audio = new Audio(s.audio);
+  audio.addEventListener('ended', () => { if (state) state.textContent = '播放完畢'; stopAudio(); });
+  audio.addEventListener('error', () => {
+    if (playing !== id) return;
+    audio = null;
+    if (!$('#ttsFallback').checked || !('speechSynthesis' in window)) { if (state) state.textContent = '這段的錄音還沒上傳，可以先展開「講解文字」閱讀。'; stopAudio(); return; }
+    if (state) state.textContent = '錄音還沒上傳，先用瀏覽器語音朗讀。';
+    speakScript(s.script, () => { if (state) state.textContent = '播放完畢'; stopAudio(); });
   });
-  state.entries = [...byId.values()];
-  if (serverProgress && !state.pending.progress) {
-    Object.entries(serverProgress).forEach(([k, v]) => { if (!state.progress[k] || (v.at || 0) > (state.progress[k].at || 0)) state.progress[k] = v; });
-  }
+  audio.play().then(() => { if (state) state.textContent = '播放中'; }).catch(() => {});
 }
-async function login(token){
-  token = String(token || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-  if (!token) { showGate('請輸入 token。'); return; }
-  $('#gBtn').disabled = true; $('#gBtn').textContent = '登入中…';
-  try {
-    const out = await API.call('login', {token});
-    if (!out.ok) { showGate(out.message || '找不到這個 token。'); return; }
-    const local = loadLocal();
-    state = local && local.token === token ? local : blankState(token, out.child);
-    applyTier(out);
-    mergeServer(out.entries, out.progress);
-    await loadPack(state.pack);
-    save(); start();
-  } catch (err) {
-    const local = loadLocal();
-    if (local && local.token === token) { state = local; start(); toast('目前離線，先用這台裝置上的紀錄'); }
-    else showGate('連不上伺服器，請稍後再試。');
-  } finally { $('#gBtn').disabled = false; $('#gBtn').textContent = '開始'; }
+function speakScript(lines, onEnd){
+  const runs = [];
+  lines.forEach(ln => {
+    const re = /(\*[^*]+\*)|(〔停頓\s*([\d.]+)\s*秒〕)/g; let i = 0, m;
+    while ((m = re.exec(ln))) {
+      if (m.index > i) runs.push({lang:'zh', text: ln.slice(i, m.index)});
+      if (m[1]) runs.push({lang:'en', text: m[1].slice(1, -1)}); else runs.push({pause: +m[3]});
+      i = re.lastIndex;
+    }
+    if (i < ln.length) runs.push({lang:'zh', text: ln.slice(i)});
+    runs.push({pause: .6});
+  });
+  const voices = speechSynthesis.getVoices();
+  const zh = voices.find(v => /zh[-_]TW/i.test(v.lang)) || voices.find(v => /^zh/i.test(v.lang));
+  const en = voices.find(v => /en[-_]US/i.test(v.lang)) || voices.find(v => /^en/i.test(v.lang));
+  const job = tts = {cancel:false};
+  let k = 0;
+  const next = () => {
+    if (job.cancel) return;
+    if (k >= runs.length) { onEnd(); return; }
+    const r = runs[k++];
+    if (r.pause) { setTimeout(next, r.pause * 1000); return; }
+    const t = r.text.replace(/[「」]/g, '').trim(); if (!t) { next(); return; }
+    const u = new SpeechSynthesisUtterance(t);
+    u.lang = r.lang === 'en' ? 'en-US' : 'zh-TW'; const v = r.lang === 'en' ? en : zh; if (v) u.voice = v;
+    u.rate = r.lang === 'en' ? .9 : 1;
+    u.onend = next; u.onerror = next;
+    speechSynthesis.speak(u);
+  };
+  next();
 }
-$('#gateForm').addEventListener('submit', e => { e.preventDefault(); login($('#gToken').value); });
 
-/* ---------- morpheme logic ---------- */
-function matchForm(piece, type){ for (const m of M) if (m.t === type && m.forms.includes(piece)) return m; return null; }
+/* ---------- 拆字 ---------- */
+function matchForm(piece, type){
+  // 先找本課程教的詞素，再找只顯示意思的零件
+  for (const m of LIVE) if (m.t === type && m.forms.includes(piece)) return m;
+  for (const m of P.morphemes) if (m.display && m.t === type && m.forms.includes(piece)) return m;
+  return null;
+}
 function parseSplit(text){
   const pieces = String(text).toLowerCase().split('+').map(s => s.replace(/[^a-z]/g, '')).filter(Boolean);
   return pieces.map((p, i) => {
@@ -133,270 +405,108 @@ function parseSplit(text){
     if (many && first && (m = matchForm(p, 'pre'))) t = 'pre';
     else if (many && last && (m = matchForm(p, 'suf'))) t = 'suf';
     else if ((m = matchForm(p, 'root'))) t = 'root';
-    else if (many && !first && !last && (m = matchForm(p, 'pre'))) t = 'pre';
+    else if (many && !last && (m = matchForm(p, 'pre'))) t = 'pre';
+    else if (many && !first && (m = matchForm(p, 'suf'))) t = 'suf';
     else m = null;
     return {t, s:p, m: m ? m.id : null};
   });
 }
-const isCompoundSplit = parts => parts.length === 2 && parts.every(p => p.t === 'base' && p.s.length >= 2);
-function familyGuess(parts){
-  const root = parts.find(p => p.t === 'root'); if (root) return root.s;
-  const base = parts.filter(p => p.t === 'base');
-  if (base.length === 1) return base[0].s;
-  return '';
-}
 function suggest(word){
   word = word.toLowerCase().replace(/[^a-z]/g, '');
   if (word.length < 4) return [];
+  const pool = t => LIVE.filter(m => m.t === t && unlocked(m)).flatMap(m => m.forms.filter(f => f.length >= 2).map(f => ({f, m})));
+  const pres = pool('pre'), sufs = pool('suf'), roots = pool('root');
   const out = new Map();
   const add = (pieces, score) => {
-    const key = pieces.join('+');
     if (pieces.length < 2 || pieces.some(x => x.length < 2)) return;
-    if (!out.has(key) || out.get(key) < score) out.set(key, score);
+    const k = pieces.join('+'); if (!out.has(k) || out.get(k) < score) out.set(k, score);
   };
-  if (COMP[word]) add(COMP[word].split('+'), 6);
-  const pres = M.filter(m => m.t === 'pre' && !m.display).flatMap(m => m.forms.map(f => ({f, m})));
-  const sufs = M.filter(m => m.t === 'suf' && !m.display).flatMap(m => m.forms.map(f => ({f, m})));
-  const roots = M.filter(m => m.t === 'root' && !m.display).flatMap(m => m.forms.map(f => ({f, m})));
-  const preOpts = [null, ...pres.filter(p => word.startsWith(p.f) && word.length - p.f.length >= 3)];
-  for (const p of preOpts) {
+  if (COMP[word]) add(COMP[word].split('+'), 9);
+  for (const p of [null, ...pres.filter(p => word.startsWith(p.f) && word.length - p.f.length >= 3)]) {
     const r1 = p ? word.slice(p.f.length) : word;
-    const sufOpts = [null, ...sufs.filter(s => r1.endsWith(s.f) && r1.length - s.f.length >= 2)];
-    for (const s of sufOpts) {
+    for (const s of [null, ...sufs.filter(s => r1.endsWith(s.f) && r1.length - s.f.length >= 2)]) {
       const mid = s ? r1.slice(0, r1.length - s.f.length) : r1;
       const head = p ? [p.f] : [], tail = s ? [s.f] : [];
-      const base = (p ? 2 : 0) + (s ? 2 + s.f.length * .1 : 0) + (p ? p.f.length * .1 : 0);
+      const base = (p ? 2 : 0) + (s ? (s.m.id === 'en' ? 1 : 2) : 0) + (s ? s.f.length * .1 : 0) + (p ? p.f.length * .1 : 0);
       if (mid.length >= 2) add([...head, mid, ...tail], base - (mid.length < 3 ? 1 : 0));
       for (const r of roots) {
         const k = mid.indexOf(r.f); if (k < 0) continue;
         const before = mid.slice(0, k), after = mid.slice(k + r.f.length);
-        add([...head, ...(before ? [before] : []), r.f, ...(after ? [after] : []), ...tail], base + 3 + r.f.length * .1 - (before.length === 1 ? .5 : 0) - (after.length === 1 ? .5 : 0));
+        add([...head, ...(before ? [before] : []), r.f, ...(after ? [after] : []), ...tail],
+          base + 3 + r.f.length * .1 - (before.length === 1 ? .5 : 0) - (after.length === 1 ? .5 : 0));
       }
     }
   }
   return [...out.entries()].filter(([, sc]) => sc > 0).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([k]) => k);
 }
-const famNames = ids => ids.map(id => MBY[id] ? mLabel(MBY[id]) : id).join('、');
-function checkEntry(word, parts, clarity){
-  const used = parts.filter(p => p.m).map(p => p.m);
-  const trapFor = PACK.traps[word], keyFor = PACK.key[word], comp = COMP[word];
-  if (clarity === '不能拆') {
-    if (trapFor) return {kind:'key', msg:`答對了：${word} ${trapFor.includes('cmp') ? '看起來像複合字' : '看起來有 ' + famNames(trapFor)}，其實不能這樣拆。`};
-    if (keyFor) return {kind:'mismatch', msg:`課程詞表裡，${word} 是可以拆的，它屬於 ${famNames(keyFor)} 家族。再看看？`};
-    if (comp) return {kind:'mismatch', msg:`${word} 是複合字，可以拆成 ${comp.replace('+', ' + ')}。`};
-    return {kind:'open', msg:'詞表外的字。你的判斷先保留在地圖上，標成待確認。'};
-  }
-  if (trapFor && (trapFor.some(id => used.includes(id)) || (trapFor.includes('cmp') && isCompoundSplit(parts))))
-    return {kind:'trap', msg:`小心：${word} 看起來${trapFor.includes('cmp') ? '是複合字' : '有 ' + famNames(trapFor)}，但意思接不起來。要改成「不能拆」嗎？`};
-  if (keyFor) {
-    if (keyFor.some(id => used.includes(id))) return {kind:'key', msg:`符合課程詞表：${word} 屬於 ${famNames(keyFor)} 家族。`};
-    return {kind:'mismatch', msg:`課程詞表把 ${word} 放在 ${famNames(keyFor)} 家族。再看看你的拆法？`};
-  }
-  if (comp) {
-    if (parts.map(p => p.s).join('+') === comp) return {kind:'key', msg:`符合課程詞表：${word} 是複合字，${comp.replace('+', ' + ')}。`};
-    return {kind:'mismatch', msg:`${word} 是複合字，課程詞表的拆法是 ${comp.replace('+', ' + ')}。`};
-  }
-  if (isCompoundSplit(parts)) return {kind:'open', msg:'看起來是複合字。詞表裡沒有這個字，先保留你的拆法，標成待確認。'};
-  return {kind:'open', msg:'詞表外的字。你的拆法先保留在地圖上，標成待確認。'};
+function partNote(p){
+  const m = p.m ? MBY[p.m] : null;
+  if (!m) return `<span>${esc(TYPE_LABEL[p.t])}</span>`;
+  if (m.display || unlocked(m)) return `<span>${esc(m.mean)}</span>`;
+  return `<span class="later">W${m.unit} 會學到</span>`;
 }
-function badgeFor(e){
-  if (e.check === 'key') return '<span class="badge key">詞表確認</span>';
-  if (e.check === 'trap' || e.check === 'mismatch') return '<span class="badge trap">再看看</span>';
-  return '<span class="badge open">待確認</span>';
-}
-const confirmed = e => e.check === 'key';
 function partsHTML(parts){
   if (!parts.length) return '<span class="empty">拆好的零件會顯示在這裡</span>';
-  return parts.map((p, i) => {
-    const m = p.m ? MBY[p.m] : null;
-    const note = m ? m.mean : (parts.length === 2 && parts.every(x => x.t === 'base') ? '字' : TYPE_LABEL[p.t]);
-    return (i ? '<span class="plus">+</span>' : '') + `<div class="part ${p.t}"><b>${esc(p.s)}</b><span>${esc(note)}</span></div>`;
-  }).join('');
+  return parts.map((p, i) => (i ? '<span class="plus">+</span>' : '') +
+    `<div class="part ${p.t}${p.m && MBY[p.m] && MBY[p.m].display ? ' disp' : ''}"><b>${esc(p.s)}</b>${partNote(p)}</div>`).join('');
 }
-const inFamily = (e, id) => id === 'cmp' ? !!e.compound : e.parts.some(p => p.m === id);
-const countFor = id => state.entries.filter(e => inFamily(e, id)).length;
-const unitOf = n => UNITS.find(u => u.unit === n);
+function familyGuess(parts){
+  const root = parts.find(p => p.t === 'root'); if (root) return root.s;
+  return parts.filter(p => p.t === 'base').map(p => p.s).join('') || '';
+}
+const isCompound = en => en.clarity !== '不能拆' && (COMP[en.word] === en.parts.map(p => p.s).join('+') || (en.parts.length >= 2 && en.parts.every(p => p.t === 'base' && p.s.length >= 3)));
 
-/* ---------- header ---------- */
-function renderHeader(){
-  $('#tierLabel').textContent = state.tierLabel || '免費版';
-  $('#tab-wall').classList.toggle('locked-tab', !feat('wall'));
-  $('#tab-wall').innerHTML = feat('wall') ? '班級牆' : '班級牆 <span class="lock">課程版</span>';
-  $('#unitPick').innerHTML = UNITS.map(u => `<button type="button" data-u="${u.unit}" aria-pressed="${state.unit === u.unit}">W${u.unit}</button>`).join('');
-  $('#countPill').textContent = `${state.entries.length} 個字`;
-  $('#acctBtn').textContent = state.child || '帳號';
-  renderSync();
-}
-$('#unitPick').addEventListener('click', e => {
-  const b = e.target.closest('[data-u]'); if (!b) return;
-  state.unit = +b.dataset.u; ui.seg = null; ui.mapSel = null; save(); renderAll();
-});
-
-/* ---------- tabs ---------- */
-const TABS = ['lesson','capture','map','wc','review','wall'];
-const feat = name => !!(state && state.features && state.features[name]);
-const ASK_OFF = '提問和班級牆是課程版的功能';
-const askBtn = (cls = 'btn btn-quiet', id = '') => feat('ask')
-  ? `<button type="button" class="${cls} ask-on" data-ask="${esc(id)}">提問</button>`
-  : `<button type="button" class="${cls} ask-off" disabled aria-disabled="true" title="${ASK_OFF}">提問 <span class="lock">課程版</span></button>`;
-// 課程版的提問流程之後接在這裡（後端會再檢查版本）
-document.addEventListener('click', e => { const b = e.target.closest('[data-ask]'); if (b) toast('提問功能會在開課時啟用'); });
-TABS.forEach(t => $('#tab-' + t).addEventListener('click', () => { ui.tab = t; if (t === 'review') ui.review = null; renderTabs(); renderView(); }));
-function renderTabs(){ TABS.forEach(t => { $('#tab-' + t).setAttribute('aria-selected', String(ui.tab === t)); $('#v-' + t).hidden = ui.tab !== t; }); }
-function renderView(){
-  stopSpeech();
-  ({lesson:renderLesson, capture:renderCaptureSide, map:renderMap, wc:renderWC, review:renderReview, wall:renderWall})[ui.tab]();
-}
-
-/* ---------- lesson ---------- */
-const segDone = s => !!(state.progress[s.id] && state.progress[s.id].done);
-function renderLesson(){
-  const u = unitOf(state.unit);
-  if (!ui.seg || !u.segments.some(s => s.id === ui.seg)) ui.seg = (u.segments.find(s => !segDone(s)) || u.segments[0]).id;
-  const done = u.segments.filter(segDone).length;
-  $('#segNav').innerHTML = `<span class="stage">W${u.unit} · ${esc(u.stage)}</span><h3>${esc(u.title)}</h3>
-    <div class="unitprog" aria-label="完成 ${done} / ${u.segments.length} 段"><span style="width:${done / u.segments.length * 100}%"></span></div>` +
-    u.segments.map((s, i) => `<button type="button" class="segbtn ${segDone(s) ? 'done' : ''}" data-s="${s.id}" aria-current="${ui.seg === s.id}">
-      <span class="no">${segDone(s) ? '✓' : i}</span><span class="t">${esc(s.title)}</span><span class="min">${s.minutes}′</span></button>`).join('');
-  renderSegment();
-}
-$('#segNav').addEventListener('click', e => { const b = e.target.closest('[data-s]'); if (!b) return; ui.seg = b.dataset.s; renderLesson(); window.scrollTo({top:0}); });
-const passageHTML = ps => `<div class="passage" lang="en">${ps.map((t, i) => `<p>${esc(t).replace(/\{\{(.+?)\|(.+?)\}\}/g, (m, w, lemma) => `<button type="button" class="pw" data-w="${lemma}" data-p="${i}">${w}</button>`)}</p>`).join('')}</div>`;
-const plainPassage = t => t.replace(/\{\{(.+?)\|.+?\}\}/g, '$1');
-const scriptHTML = p => esc(p).replace(/\*(.+?)\*/g, '<em lang="en">$1</em>').replace(/〔停頓 (\d+) 秒〕/g, '<span class="pause">〔停頓 $1 秒〕</span>');
-function renderSegment(){
-  const u = unitOf(state.unit), i = u.segments.findIndex(s => s.id === ui.seg), s = u.segments[i];
-  const pr = state.progress[s.id] || {};
-  const answers = pr.answers || {};
-  $('#segPanel').innerHTML = `
-    <span class="eyebrow">W${u.unit} · 第 ${i} 段 / 共 ${u.segments.length - 1} 段 · 約 ${s.minutes} 分鐘</span>
-    <h2>${esc(s.title)}</h2>
-    <div class="player">
-      <audio id="segAudio" controls preload="metadata" src="${esc(s.audio)}" hidden></audio>
-      <div class="fallback" id="segFallback" hidden>
-        <button type="button" class="btn btn-quiet" id="speakBtn">▶ 播放講解（瀏覽器語音）</button>
-        <span>正式語音檔準備中，先用瀏覽器內建的聲音朗讀。</span>
-      </div>
-    </div>
-    ${s.passage ? `<span class="eyebrow" style="display:block;margin-top:16px">短文 · 點一下畫底線的字，把它帶到「採集」</span>${passageHTML(s.passage)}` : ''}
-    <ul class="slides" aria-label="畫面重點">${s.slides.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
-    <details class="script" id="scriptBox"><summary>講解文字</summary>${s.script.map(p => `<p>${scriptHTML(p)}</p>`).join('')}</details>
-    ${s.checks.length ? `<div class="checks"><h3>段後檢核</h3>${s.checks.map((c, k) => checkHTML(c, k, answers[k])).join('')}</div>` : ''}
-    <div class="segfoot">
-      <button type="button" class="btn btn-quiet" data-nav="-1" ${i === 0 ? 'disabled' : ''}>上一段</button>
-      ${segDone(s) ? '<span class="badge key">這一段完成了</span>' : `<button type="button" class="btn btn-primary" id="doneBtn">${s.checks.length ? '檢核做完了，標成完成' : '聽完了，標成完成'}</button>`}
-      <button type="button" class="btn btn-quiet" data-nav="1" ${i === u.segments.length - 1 ? 'disabled' : ''}>下一段</button>
-    </div>
-    ${i === u.segments.length - 1 ? `<p class="proto-note">本單元任務：${esc(u.task)}</p>` : ''}`;
-  const au = $('#segAudio');
-  au.addEventListener('loadedmetadata', () => { au.hidden = false; $('#segFallback').hidden = true; });
-  au.addEventListener('error', () => { au.hidden = true; $('#segFallback').hidden = !('speechSynthesis' in window); if (!('speechSynthesis' in window)) $('#scriptBox').open = true; });
-  au.addEventListener('ended', () => setSeg(s.id, {heard:true}));
-  $('#speakBtn') && $('#speakBtn').addEventListener('click', () => speaking ? stopSpeech() : speak(s));
-}
-function checkHTML(c, k, ans){
-  if (c.type === 'open') return `<div class="q" data-k="${k}"><div class="qt">${k + 1}. ${esc(c.q)}</div>
-    <textarea class="in" data-open="${k}" placeholder="用自己的話寫一句">${esc(ans && ans.text || '')}</textarea>
-    <div class="actions"><button type="button" class="btn btn-quiet" data-ref="${k}">看參考說法</button></div>
-    <div class="fb ok" ${ans && ans.ref ? '' : 'hidden'}>參考說法：${esc(c.ref)}</div></div>`;
-  const answered = ans && ans.picked !== undefined;
-  return `<div class="q" data-k="${k}"><div class="qt">${k + 1}. ${esc(c.q)}</div><div class="opts">` +
-    c.options.map((o, j) => `<button type="button" class="opt ${answered && j === c.answer && ans.picked === j ? 'right' : ''} ${answered && ans.picked === j && j !== c.answer ? 'wrong' : ''}" data-o="${j}">（${'ABCD'[j]}）${esc(o)}</button>`).join('') +
-    `</div>${answered ? (ans.picked === c.answer ? `<div class="fb ok">答對了。${esc(c.explain || '')}</div>` : '<div class="fb no">再想一想，也可以重聽這一段，再選一次。</div>') : ''}</div>`;
-}
-function setSeg(id, patch){ state.progress[id] = {...(state.progress[id] || {}), ...patch, at: now()}; markProgress(); }
-$('#segPanel').addEventListener('click', e => {
-  const u = unitOf(state.unit), s = u.segments.find(x => x.id === ui.seg);
-  const nav = e.target.closest('[data-nav]');
-  if (nav) { const i = u.segments.indexOf(s) + +nav.dataset.nav; if (u.segments[i]) { ui.seg = u.segments[i].id; renderLesson(); window.scrollTo({top:0}); } return; }
-  if (e.target.id === 'doneBtn') {
-    setSeg(s.id, {done:true}); renderLesson(); toast('這一段完成了');
-    if (u.segments.every(segDone)) toast(`W${u.unit} 全部完成！到「採集」記下你在書裡找到的字`);
-    return;
+/* ---------- 比對答案表 ---------- */
+function checkEntry(en){
+  const w = en.word;
+  const ids = new Set(en.parts.map(p => p.m).filter(id => id && MBY[id] && !MBY[id].display));
+  const whole = en.clarity === '不能拆' || en.parts.length < 2;
+  if (TRAPS[w]) {
+    const labels = TRAPS[w].map(id => MBY[id]).filter(Boolean).map(mLabel).join('、');
+    return whole ? {kind:'key', trap:true, msg:`你認出了陷阱字：${w} 看起來有 ${labels}，其實不能這樣拆。`}
+                 : {kind:'trap', msg:`${w} 是陷阱字：看起來有 ${labels}，但拆開後意思接不上。建議改成「不能拆」。`};
   }
-  const pw = e.target.closest('.pw');
-  if (pw) {
-    const sentence = plainPassage(s.passage[+pw.dataset.p]).split(/(?<=[.!?:])\s+/).find(x => x.toLowerCase().includes(pw.textContent.toLowerCase())) || plainPassage(s.passage[+pw.dataset.p]);
-    resetForm();
-    fWord.value = pw.dataset.w; fSplit.value = pw.dataset.w; fSplit.dataset.auto = '1';
-    $('#f-sentence').value = sentence.trim(); $('#f-book').value = '示範短文：A City Without Smoke';
-    ui.tab = 'capture'; renderTabs(); renderView(); refreshSugs(); refreshParts();
-    window.scrollTo({top:0}); fSplit.focus();
-    toast(`${pw.dataset.w} 已帶到採集，選一個拆法吧`);
-    return;
+  if (COMP[w]) {
+    return en.parts.map(p => p.s).join('+') === COMP[w] ? {kind:'key', msg:'和課程詞表一致：這是複合字。'}
+      : {kind:'mismatch', msg:`課程詞表把它當成複合字：兩個獨立的字拼在一起。再看看？`};
   }
-  const opt = e.target.closest('[data-o]');
-  if (opt) {
-    const k = +opt.closest('.q').dataset.k;
-    const answers = {...((state.progress[s.id] || {}).answers || {})}; answers[k] = {picked: +opt.dataset.o};
-    setSeg(s.id, {answers}); renderSegment(); return;
+  if (KEY[w]) {
+    const exp = KEY[w].filter(id => MBY[id] && unlocked(MBY[id]));
+    if (!exp.length) return {kind:'open', msg:'這個字的零件，之後的單元才會學到。先照你的判斷記下來。'};
+    const miss = exp.filter(id => !ids.has(id));
+    if (!miss.length && !whole) return {kind:'key', msg:'和課程詞表一致。'};
+    return {kind:'mismatch', msg:`課程詞表裡，${w} 和 ${miss.map(id => mLabel(MBY[id])).join('、')} 有關。對照原句，再看看你的拆法？`};
   }
-  const ref = e.target.closest('[data-ref]');
-  if (ref) {
-    const k = +ref.dataset.ref; const answers = {...((state.progress[s.id] || {}).answers || {})};
-    answers[k] = {...(answers[k] || {}), ref:true, text: $(`[data-open="${k}"]`).value.slice(0, 300)};
-    setSeg(s.id, {answers}); renderSegment();
-  }
-});
-$('#segPanel').addEventListener('change', e => {
-  const ta = e.target.closest('[data-open]'); if (!ta) return;
-  const s = unitOf(state.unit).segments.find(x => x.id === ui.seg);
-  const k = +ta.dataset.open; const answers = {...((state.progress[s.id] || {}).answers || {})};
-  answers[k] = {...(answers[k] || {}), text: ta.value.slice(0, 300)}; setSeg(s.id, {answers});
-});
+  return {kind:'open', msg: feat('ask') ? '這個字不在課程詞表裡。照你的判斷記錄；拿不準的話，可以按「提問」。' : '這個字不在課程詞表裡。照你的判斷記錄，等你在別的句子裡再遇到它，再回來確認。'};
+}
+const CHECK_TAG = {key:'詞表一致', trap:'陷阱字', mismatch:'再看看', open:'待確認'};
 
-/* browser speech fallback: Chinese runs in zh-TW, *English* runs in en-US, 〔停頓 N 秒〕 as real pauses */
-let speaking = false, speechTimer = null;
-function voiceFor(lang){
-  const vs = speechSynthesis.getVoices();
-  return vs.find(v => v.lang === lang) || vs.find(v => v.lang.replace('_', '-').startsWith(lang.slice(0, 2))) || null;
+/* 老師對每個字的判定（來自已回答的提問） */
+function teacherOf(id){
+  const qs = (S.questions || []).filter(q => q.entryId === id);
+  const ans = qs.filter(q => q.status === '已回答' && q.verdict).sort((a, b) => b.answeredAt - a.answeredAt)[0];
+  return {asked: qs.length > 0, pending: qs.some(q => q.status !== '已回答'), q: ans || null};
 }
-function speechQueue(s){
-  const q = [];
-  s.script.forEach(p => {
-    p.split(/(\*[^*]+\*|〔停頓 \d+ 秒〕)/).filter(Boolean).forEach(run => {
-      const pm = run.match(/〔停頓 (\d+) 秒〕/);
-      if (pm) q.push({pause: +pm[1] * 1000});
-      else if (run.startsWith('*')) q.push({text: run.slice(1, -1), lang:'en-US'});
-      else if (run.trim()) q.push({text: run, lang:'zh-TW'});
-    });
-    q.push({pause: 600});
-  });
-  return q;
+function tagsHTML(en){
+  const t = teacherOf(en.id), c = en.check || {kind:'open'};
+  let h = '';
+  if (t.q) h += t.q.verdict === 'confirmed' ? '<span class="tag teacher">老師確認</span>' : '<span class="tag teacher again">老師：再看看</span>';
+  else h += `<span class="tag ${c.kind}">${CHECK_TAG[c.kind]}</span>`;
+  if (t.pending) h += '<span class="tag asked">已提問</span>';
+  return h;
 }
-function speak(s){
-  stopSpeech(); speaking = true;
-  const q = speechQueue(s); let i = 0;
-  const btn = $('#speakBtn'); if (btn) btn.textContent = '■ 停止';
-  const next = () => {
-    if (!speaking) return;
-    if (i >= q.length) { stopSpeech(); setSeg(s.id, {heard:true}); return; }
-    const it = q[i++];
-    if (it.pause) { speechTimer = setTimeout(next, it.pause); return; }
-    const u = new SpeechSynthesisUtterance(it.text);
-    u.lang = it.lang; const v = voiceFor(it.lang); if (v) u.voice = v;
-    u.rate = it.lang === 'en-US' ? .92 : 1;
-    u.onend = next; u.onerror = next;
-    speechSynthesis.speak(u);
-  };
-  next();
-}
-function stopSpeech(){
-  speaking = false; clearTimeout(speechTimer);
-  try { if ('speechSynthesis' in window) speechSynthesis.cancel(); } catch (e) {}
-  const btn = $('#speakBtn'); if (btn) btn.textContent = '▶ 播放講解（瀏覽器語音）';
-}
+const confirmedEntry = en => { const t = teacherOf(en.id); return t.q ? t.q.verdict === 'confirmed' : (en.check && en.check.kind === 'key'); };
 
-/* ---------- capture ---------- */
+/* ---------- 採集 ---------- */
 const fWord = $('#f-word'), fSplit = $('#f-split'), fPos = $('#f-pos'), fFam = $('#f-family');
 let famTouched = false, posTouched = false;
 function refreshSugs(){
   const w = fWord.value.trim(), box = $('#sugs');
-  if (!w) { box.innerHTML = '<span class="hint">輸入單字後，這裡會出現可用的拆法。</span>'; return; }
+  if (!w) { box.innerHTML = '<span class="hint">輸入單字後，這裡會出現依照目前進度可用的拆法。</span>'; return; }
   const s = suggest(w);
   box.innerHTML = s.map(k => `<button type="button" class="sug" data-k="${esc(k)}">${esc(k)}</button>`).join('') +
     `<button type="button" class="sug none" data-k="${esc(w.toLowerCase())}" data-whole="1">不能拆</button>` +
-    (s.length ? '' : '<span class="hint">三個單元的詞素裡沒有找到可用的拆法，可以自己拆，或標成不能拆。</span>');
+    (s.length ? '' : '<span class="hint">目前進度裡沒有找到可用的詞素，可以自己拆，或標成不能拆。</span>');
 }
 function refreshParts(){
   const parts = parseSplit(fSplit.value);
@@ -404,46 +514,25 @@ function refreshParts(){
   if (!famTouched) fFam.value = familyGuess(parts);
   if (!posTouched) { const suf = [...parts].reverse().find(p => p.t === 'suf'); if (suf && MBY[suf.m] && MBY[suf.m].pos) fPos.value = MBY[suf.m].pos; }
 }
-fWord.addEventListener('input', () => { $('#checkBox').innerHTML = ''; refreshSugs(); if (!fSplit.value || fSplit.dataset.auto) { fSplit.value = fWord.value.trim().toLowerCase(); fSplit.dataset.auto = '1'; refreshParts(); } });
+fWord.addEventListener('input', () => { refreshSugs(); if (!fSplit.value || fSplit.dataset.auto) { fSplit.value = fWord.value.trim().toLowerCase(); fSplit.dataset.auto = '1'; refreshParts(); } });
 fSplit.addEventListener('input', () => { delete fSplit.dataset.auto; refreshParts(); });
 fFam.addEventListener('input', () => { famTouched = true; });
 fPos.addEventListener('change', () => { posTouched = true; });
 $('#sugs').addEventListener('click', e => {
   const b = e.target.closest('.sug'); if (!b) return;
   fSplit.value = b.dataset.k; delete fSplit.dataset.auto;
-  if (b.dataset.whole) setClarity('不能拆'); else if (ui.clarity === '不能拆') setClarity('透明');
+  if (b.dataset.whole) setSeg('#clarity', '不能拆'); else if (ui.clarity === '不能拆') setSeg('#clarity', '透明');
   refreshParts();
 });
-function setClarity(v){ document.querySelectorAll('#clarity button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === v))); ui.clarity = v; }
-$('#clarity').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setClarity(b.dataset.v); });
-function showCheck(entry, res){
-  const box = $('#checkBox');
-  const title = {key:'確認了', trap:'可能是陷阱字', mismatch:'再看看你的拆法', open:'待確認'}[res.kind];
-  const btns = [];
-  if (res.kind === 'trap') btns.push('<button type="button" class="btn btn-quiet" data-fix="whole">改成不能拆</button>');
-  if (res.kind === 'mismatch' || res.kind === 'trap') btns.push('<button type="button" class="btn btn-quiet" data-fix="edit">重新拆</button>');
-  if (res.kind !== 'key') btns.push(askBtn('btn btn-quiet', entry.id));
-  box.innerHTML = `<div class="check ${res.kind === 'mismatch' ? 'trap' : res.kind}"><span class="ct">${esc(entry.word)}：${title}</span><span>${esc(res.msg)}</span>${btns.length ? `<div class="actions">${btns.join('')}</div>` : ''}</div>`;
-  box.dataset.id = entry.id;
-}
-$('#checkBox').addEventListener('click', e => {
-  const b = e.target.closest('[data-fix]'); if (!b) return;
-  const en = state.entries.find(x => x.id === $('#checkBox').dataset.id); if (!en) return;
-  if (b.dataset.fix === 'whole') {
-    en.parts = [{t:'base', s:en.word, m:null}]; en.clarity = '不能拆'; en.family = ''; en.compound = false;
-    const r = checkEntry(en.word, en.parts, en.clarity); en.check = r.kind; markEntry(en); showCheck(en, r); renderCaptureSide();
-  } else {
-    state.entries = state.entries.filter(x => x.id !== en.id); markDelete(en.id);
-    fWord.value = en.word; refreshSugs(); fSplit.value = en.parts.map(p => p.s).join('+'); delete fSplit.dataset.auto; refreshParts();
-    $('#f-gloss').value = en.gloss || ''; $('#f-meaning').value = en.meaning || ''; $('#f-book').value = en.book || ''; $('#f-sentence').value = en.sentence || '';
-    $('#checkBox').innerHTML = ''; renderHeader(); renderCaptureSide(); fSplit.focus();
-  }
-});
+function setSeg(sel, v){ $$(sel + ' button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === v))); if (sel === '#clarity') ui.clarity = v; else ui.subject = v; }
+$('#clarity').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setSeg('#clarity', b.dataset.v); });
+$('#subject').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setSeg('#subject', b.dataset.v); });
 function resetForm(){
-  $('#capForm').reset(); fSplit.dataset.auto = '1'; famTouched = posTouched = false; setClarity('透明');
-  refreshSugs(); refreshParts(); $('#formErr').textContent = ''; $('#checkBox').innerHTML = '';
+  $('#capForm').reset(); fSplit.dataset.auto = '1'; famTouched = posTouched = false;
+  setSeg('#clarity', '透明'); setSeg('#subject', '');
+  refreshSugs(); refreshParts(); $('#formErr').textContent = '';
 }
-$('#resetBtn').addEventListener('click', resetForm);
+$('#resetBtn').addEventListener('click', () => { resetForm(); $('#lastCheck').innerHTML = ''; });
 $('#capForm').addEventListener('submit', e => {
   e.preventDefault();
   const word = fWord.value.trim().toLowerCase().replace(/[^a-z\-]/g, '');
@@ -451,117 +540,193 @@ $('#capForm').addEventListener('submit', e => {
   const parts = ui.clarity === '不能拆' ? [{t:'base', s:word, m:null}] : parseSplit(fSplit.value || word);
   const joined = parts.map(p => p.s).join('');
   if (ui.clarity !== '不能拆' && joined !== word.replace(/-/g, '')) { $('#formErr').textContent = `拆法合起來是「${joined}」，和單字「${word}」不一樣，請檢查。`; return; }
-  const res = checkEntry(word, parts, ui.clarity);
-  const entry = {id:'e' + now().toString(36) + Math.random().toString(36).slice(2, 6), word, parts,
-    pos: fPos.value, gloss: $('#f-gloss').value.trim().slice(0, 200), meaning: $('#f-meaning').value.trim().slice(0, 300), clarity: ui.clarity,
-    book: $('#f-book').value.trim().slice(0, 120), sentence: $('#f-sentence').value.trim().slice(0, 500),
-    family: ui.clarity === '不能拆' ? '' : fFam.value.trim().toLowerCase().slice(0, 40),
-    compound: ui.clarity !== '不能拆' && (isCompoundSplit(parts) || !!COMP[word]),
-    unit: state.unit, check: res.kind, ts: now(), ease:0, tier:'free'};
-  state.entries.push(entry); markEntry(entry);
-  const keepBook = entry.book;
-  resetForm(); $('#f-book').value = keepBook; showCheck(entry, res); renderHeader(); renderCaptureSide();
+  const sentence = $('#f-sentence').value.trim();
+  if (!sentence) { $('#formErr').textContent = '請抄下原句：意思要回到句子裡確認。'; $('#f-sentence').focus(); return; }
+  const now = Date.now();
+  const en = {id:'e' + now.toString(36) + Math.random().toString(36).slice(2, 6), word, parts, pos: fPos.value,
+    partsMeaning: $('#f-pm').value.trim(), meaning: $('#f-meaning').value.trim(), clarity: ui.clarity,
+    book: $('#f-book').value.trim(), sentence, subject: maxReached() >= 13 ? ui.subject : '',
+    family: ui.clarity === '不能拆' ? '' : fFam.value.trim().toLowerCase(), unit: ui.unit, created: now, ease: 0, tier: S.tier};
+  en.check = checkEntry(en);
+  putEntry(en);
+  ui.lastCheck = en.id;
+  resetForm(); renderHeader(); renderCaptureSide(); renderLastCheck(); fWord.focus();
+  toast(en.check.kind === 'key' ? '已加入地圖・和詞表一致' : '已加入地圖');
 });
+function renderLastCheck(){
+  const en = L.entries[ui.lastCheck], box = $('#lastCheck');
+  if (!en) { box.innerHTML = ''; return; }
+  const c = en.check || checkEntry(en);
+  box.innerHTML = `<div class="check ${c.kind}"><b>${esc(en.word)}　${CHECK_TAG[c.kind]}</b>${esc(c.msg)}
+    <div class="actions" style="margin-top:8px"><button class="btn btn-quiet btn-sm" type="button" data-word="${esc(en.id)}">看詳細</button>
+    ${askBtn(en, true)}</div></div>`;
+}
+function askBtn(en, big){
+  const cls = big ? 'btn btn-quiet btn-sm' : 'link';
+  if (!feat('ask')) return `<button class="${cls}" type="button" disabled title="課程版功能" style="opacity:.55;cursor:not-allowed">提問（課程版）</button>`;
+  return `<button class="${cls}" type="button" data-ask="${esc(en.id)}">提問</button>`;
+}
+function countFor(id){
+  if (id === 'cmp') return entries().filter(isCompound).length;
+  return entries().filter(e => e.parts.some(p => p.m === id)).length;
+}
 function renderCaptureSide(){
-  const u = unitOf(state.unit);
-  $('#unitEyebrow').textContent = `W${u.unit} · ${u.stage}`;
-  $('#unitTitle').textContent = u.title;
-  $('#unitTask').textContent = u.task;
-  $('#unitMorphs').innerHTML = u.morphemes.map(id => MBY[id]).map(m =>
-    `<div class="mrow"><span class="f">${esc(mLabel(m))}</span><span class="mean">${esc(m.mean)}</span><span class="n">${countFor(m.id)} 個</span></div>`).join('');
-  const rec = [...state.entries].sort((a, b) => b.ts - a.ts).slice(0, 8);
-  $('#recent').innerHTML = rec.length ? rec.map(e => `<li><span class="w">${esc(e.word)}</span><span class="meta">${esc(e.parts.map(p => p.s).join(' + '))}</span>${badgeFor(e)}${e.check !== 'key' ? askBtn('share', e.id) : ''}</li>`).join('')
-    : '<li><span class="meta">還沒有紀錄。先聽完講解，再從正在讀的書裡找第一個字。</span></li>';
+  const u = unitObj(ui.unit), st = stageOf(ui.unit);
+  $('#unitEyebrow').textContent = `W${ui.unit} · ${st.name}`;
+  $('#unitTitle').textContent = u ? u.title : '';
+  $('#unitTask').textContent = u ? u.task : '';
+  let list = u ? u.morphemes.map(id => MBY[id]).filter(Boolean) : [];
+  if (!list.length) list = LIVE.filter(unlocked).sort((a, b) => countFor(b.id) - countFor(a.id)).slice(0, 8);
+  $('#unitMorphs').innerHTML = list.map(m => `<div class="mrow"><span class="f">${esc(mLabel(m))}</span><span class="mean">${esc(m.mean)}</span><span class="n">${countFor(m.id)} 個</span></div>`).join('');
+  const rec = entries().sort((a, b) => (b.created || 0) - (a.created || 0)).slice(0, 10);
+  $('#recent').innerHTML = rec.length ? rec.map(e => `<li><button class="w" type="button" data-word="${esc(e.id)}">${esc(e.word)}</button>
+      <span class="meta">${esc(e.parts.map(p => p.s).join(' + '))}</span>${tagsHTML(e)}${askBtn(e)}</li>`).join('')
+    : '<li><span class="meta">還沒有紀錄。從正在讀的書裡找第一個字吧。</span></li>';
+  renderLastCheck();
+}
+document.addEventListener('click', e => {
+  const w = e.target.closest('[data-word]'); if (w) { openWord(w.dataset.word); return; }
+  const a = e.target.closest('[data-ask]'); if (a && !a.disabled) { openAsk(a.dataset.ask); return; }
+  const c = e.target.closest('[data-close]'); if (c) { c.closest('.sheet').hidden = true; return; }
+  if (e.target.classList.contains('sheet')) e.target.hidden = true;
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') $$('.sheet').forEach(s => { s.hidden = true; }); });
+
+/* ---------- 單字詳細 ---------- */
+function detailHTML(en){
+  const c = en.check || checkEntry(en), t = teacherOf(en.id);
+  return `<div class="dw">${esc(en.word)}</div>
+    <div class="parts" style="margin-top:10px">${partsHTML(en.parts)}</div>
+    ${en.sentence ? `<div class="quote" lang="en">${esc(en.sentence)}</div>` : ''}
+    ${en.partsMeaning ? `<p style="margin:8px 0 0"><b>零件的意思：</b>${esc(en.partsMeaning)}</p>` : ''}
+    ${en.meaning ? `<p style="margin:6px 0 0"><b>在這句話裡的意思：</b>${esc(en.meaning)}</p>` : ''}
+    <div class="kv" style="margin-top:10px"><span>詞性 <b>${esc(POS_LABEL[en.pos] || '')}</b></span><span>透明度 <b>${esc(en.clarity)}</b></span>${en.family ? `<span>詞族 <b>${esc(en.family)}</b></span>` : ''}${en.book ? `<span>出處 <b>${esc(en.book)}</b></span>` : ''}${en.subject ? `<span>學科 <b>${esc(en.subject)}</b></span>` : ''}<span>記錄於 <b>W${en.unit}</b></span></div>
+    <div class="check ${c.kind}"><b>${CHECK_TAG[c.kind]}</b>${esc(c.msg)}</div>
+    ${t.q ? `<div class="tnote"><b>${t.q.verdict === 'confirmed' ? '老師確認' : '老師：再看看'}</b><br>${esc(t.q.note || '')}</div>` : t.pending ? '<p class="hint">你已經提問了，老師會在直播時回答。</p>' : ''}`;
+}
+function openWord(id){
+  const en = L.entries[id]; if (!en) return;
+  $('#wordBox').innerHTML = detailHTML(en) + `<div class="actions" style="margin-top:14px;justify-content:space-between">
+      <span>${askBtn(en, true)} <button class="danger" type="button" id="delWord" style="margin-left:10px">刪除這個字</button><span id="delConfirm"></span></span>
+      <button class="btn btn-quiet" type="button" data-close>關閉</button></div>`;
+  $('#wordSheet').hidden = false;
+  $('#delWord').addEventListener('click', () => {
+    $('#delConfirm').innerHTML = ' 確定刪除？ <button type="button" class="danger" id="delYes">刪除</button>';
+    $('#delYes').addEventListener('click', () => { delEntry(id); $('#wordSheet').hidden = true; renderHeader(); renderView(); toast('已刪除'); });
+  });
 }
 
-/* ---------- map ---------- */
+/* ---------- 提問 ---------- */
+function openAsk(id){
+  const en = L.entries[id]; if (!en) return;
+  if (!feat('ask')) { toast(errMsg('feature_locked')); return; }
+  ui.askFor = id;
+  $('#wordSheet').hidden = true;
+  $('#askEntry').innerHTML = `<div class="dw mono" style="font-size:1.2rem;font-weight:600">${esc(en.word)}</div><div class="parts" style="margin:8px 0">${partsHTML(en.parts)}</div>
+    ${en.sentence ? `<div class="quote" lang="en">${esc(en.sentence)}</div>` : ''}`;
+  $('#askDoubt').value = ''; $('#askErr').textContent = '';
+  $('#askNick').value = S.student.nickname || S.student.child || '';
+  $('#askSub').textContent = `會出現在 ${S.cls ? S.cls.name : '班級'} 的班級牆（W${ui.unit}），下一次直播時老師會回答。`;
+  $('#askSheet').hidden = false; $('#askDoubt').focus();
+}
+$('#askForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const en = L.entries[ui.askFor]; if (!en) return;
+  const doubt = $('#askDoubt').value.trim();
+  if (doubt.length < 4) { $('#askErr').textContent = '寫下你不確定的地方，老師才知道要怎麼回答。'; return; }
+  const btn = e.submitter || $('#askForm button[type=submit]'); btn.disabled = true;
+  try {
+    const res = await API.call('ask', {token:S.token, entryId:en.id, week:ui.unit, word:en.word, split:en.parts.map(p => p.s).join('+'),
+      sentence:en.sentence, partsMeaning:en.partsMeaning, meaning:en.meaning, doubt, nickname:$('#askNick').value.trim()});
+    if (!res.ok) throw new Error(res.error);
+    S.questions.push(res.question); S.student.nickname = res.question.nickname;
+    $('#askSheet').hidden = true; toast('已送出提問'); ui.wall = null; renderView();
+  } catch (err) { $('#askErr').textContent = errMsg(err.message === 'Failed to fetch' ? 'network' : err.message); }
+  finally { btn.disabled = false; }
+});
+
+/* ---------- 地圖 ---------- */
 function renderMap(){
-  if (!ui.mapSel || !MBY[ui.mapSel] || MBY[ui.mapSel].display) {
-    const own = unitOf(state.unit).morphemes;
-    ui.mapSel = own.map(id => [id, countFor(id)]).sort((a, b) => b[1] - a[1])[0][0];
+  const open = LIVE.filter(unlocked);
+  if (!ui.mapSel || !MBY[ui.mapSel] || !unlocked(MBY[ui.mapSel])) {
+    const best = open.map(m => [m.id, countFor(m.id)]).sort((a, b) => b[1] - a[1])[0];
+    ui.mapSel = best ? best[0] : null;
   }
   const groups = [];
-  M.filter(m => !m.display).forEach(m => { let g = groups.find(x => x.field === m.field); if (!g) groups.push(g = {field:m.field, items:[]}); g.items.push(m); });
-  $('#mnav').innerHTML = groups.map(g => `<div class="group"><h3>${esc(g.field)}</h3>` + g.items.map(m =>
-    `<button type="button" class="mbtn" data-id="${m.id}" aria-current="${ui.mapSel === m.id}"><span class="f">${esc(mLabel(m))}</span><span class="mean">${esc(m.mean)}</span><span class="n">${countFor(m.id)}</span></button>`).join('') + '</div>').join('');
+  LIVE.forEach(m => { let g = groups.find(x => x.field === m.field); if (!g) groups.push(g = {field:m.field, items:[]}); g.items.push(m); });
+  $('#mnav').innerHTML = groups.map(g => `<div class="group"><h3>${esc(g.field)}</h3>` + g.items.map(m => {
+    const ok = unlocked(m);
+    return `<button type="button" class="mbtn" data-m="${m.id}" ${ok ? '' : 'disabled'} aria-current="${ui.mapSel === m.id}">
+      <span class="f">${esc(mLabel(m))}</span><span class="mean">${esc(m.mean)}</span>${ok ? `<span class="n">${countFor(m.id)}</span>` : `<span class="wk">W${m.unit}</span>`}</button>`;
+  }).join('') + '</div>').join('');
+  const panel = $('#mapPanel');
+  if (!ui.mapSel) { panel.innerHTML = '<div class="locked"><div class="big">還沒有可用的詞素</div>先完成 W1 的講解。</div>'; return; }
   const m = MBY[ui.mapSel];
-  const mine = state.entries.filter(e => inFamily(e, m.id));
-  const mineWords = new Set(mine.map(e => e.word));
-  const nodes = [...mine.map(e => ({w:e.word, id:e.id, mine:true, pending:!confirmed(e)})), ...m.anchors.filter(a => !mineWords.has(a)).map(a => ({w:a, mine:false}))];
-  const myTraps = state.entries.filter(e => e.clarity === '不能拆' && (PACK.traps[e.word] || []).includes(m.id)).map(e => e.word);
-  $('#mapPanel').innerHTML = `
+  const mine = entries().filter(e => m.id === 'cmp' ? isCompound(e) : e.parts.some(p => p.m === m.id));
+  const words = new Set(mine.map(e => e.word));
+  const anchors = m.anchors.filter(a => !words.has(a));
+  const nodes = [...mine.map(e => ({w:e.word, id:e.id, mine:true, ok:confirmedEntry(e)})), ...anchors.map(a => ({w:a}))];
+  const foundTraps = new Set(entries().filter(e => e.clarity === '不能拆').map(e => e.word));
+  panel.innerHTML = `
     <div class="map-head"><span class="big">${esc(mLabel(m))}</span><span class="mean">＝ ${esc(m.mean)}</span><span class="eyebrow">W${m.unit} · ${esc(TYPE_LABEL[m.t])}</span></div>
     <div class="svgbox">${mapSVG(m, nodes)}</div>
-    <div class="legend"><span><i style="background:#08333B"></i>我找到的字（詞表確認）</span><span><i style="background:#E8A33D"></i>我找到的字（待確認）</span><span><i style="background:#fff;border:1.5px dashed #5C7077"></i>課程錨點詞，還沒收集</span></div>
-    ${m.traps.length ? `<p class="sub" style="margin:14px 0 0">陷阱字：看起來${m.t === 'cmp' ? '拼得起來' : '有 ' + esc(mLabel(m))}，其實意思接不起來${myTraps.length ? `。你已經抓到 ${myTraps.length} 個` : ''}</p><div class="traps">${[...new Set([...m.traps, ...myTraps])].map(t => `<span class="trap">${esc(t)}${myTraps.includes(t) ? ' ✓' : ''}</span>`).join('')}</div>` : ''}
-    <div class="detail" id="mapDetail" ${ui.mapWord ? '' : 'hidden'}></div>`;
-  if (ui.mapWord) renderDetail(ui.mapWord);
+    <div class="legend"><span><i style="background:#08333B"></i>我找到的字（已確認）</span><span><i style="background:#E8A33D"></i>我找到的字（待確認）</span><span><i style="background:#fff;border:1.5px dashed #5C7077"></i>課程錨點詞，還沒收集</span></div>
+    ${m.traps.length ? `<p class="sub" style="margin:14px 0 0">陷阱字：看起來有 ${esc(mLabel(m))}，其實不是這個意思（實心＝你已經找到）</p><div class="traps">${m.traps.map(t => `<span class="trap" style="${foundTraps.has(t) ? 'background:#C1495B;color:#fff' : ''}">${esc(t)}</span>`).join('')}</div>` : ''}
+    <div class="detail" id="mapDetail" hidden></div>`;
 }
 function mapSVG(m, nodes){
   const W = 680, H = 460, cx = W / 2, cy = H / 2, n = nodes.length, two = n > 12, out = [];
-  const center = m.t === 'cmp' ? '複合字' : m.forms[0];
   out.push(`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(mLabel(m))} 詞族地圖，共 ${n} 個字">`);
-  const pos = nodes.map((nd, i) => { const r = two ? (i % 2 ? 200 : 140) : 170, a = -Math.PI / 2 + (2 * Math.PI * i) / Math.max(n, 1); return {x: cx + r * Math.cos(a) * 1.28, y: cy + r * Math.sin(a) * .92}; });
+  const pos = nodes.map((nd, i) => { const r = two ? (i % 2 ? 200 : 140) : 170, a = -Math.PI / 2 + 2 * Math.PI * i / Math.max(n, 1); return {x: cx + r * Math.cos(a) * 1.28, y: cy + r * Math.sin(a) * .92}; });
   nodes.forEach((nd, i) => out.push(`<line x1="${cx}" y1="${cy}" x2="${pos[i].x.toFixed(1)}" y2="${pos[i].y.toFixed(1)}" stroke="${nd.mine ? '#9FB8BD' : '#D7E4E5'}" stroke-width="1.5" ${nd.mine ? '' : 'stroke-dasharray="4 4"'}/>`));
   out.push(`<circle cx="${cx}" cy="${cy}" r="58" fill="#08333B"/>`);
-  out.push(`<text x="${cx}" y="${cy - 2}" text-anchor="middle" font-family="IBM Plex Mono, Noto Serif TC, monospace" font-weight="600" font-size="22" fill="#E8A33D">${esc(center)}</text>`);
+  out.push(`<text x="${cx}" y="${cy - 2}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-weight="600" font-size="${m.id === 'cmp' ? 17 : 22}" fill="#E8A33D">${esc(m.id === 'cmp' ? '複合字' : m.forms[0])}</text>`);
   out.push(`<text x="${cx}" y="${cy + 22}" text-anchor="middle" font-size="13" fill="#C4D7DB">${esc(m.mean.length > 8 ? m.mean.slice(0, 8) + '…' : m.mean)}</text>`);
   nodes.forEach((nd, i) => {
     const w = Math.max(56, nd.w.length * 9.2 + 24), h = 32, x = pos[i].x - w / 2, y = pos[i].y - h / 2;
-    const fill = nd.mine ? (nd.pending ? '#E8A33D' : '#08333B') : '#FFFFFF', txt = nd.mine ? (nd.pending ? '#08333B' : '#FFFFFF') : '#5C7077', stroke = nd.mine ? fill : '#5C7077';
-    const attrs = nd.mine ? `class="node" data-id="${esc(nd.id)}" tabindex="0" role="button" aria-label="${esc(nd.w)}" style="cursor:pointer"` : '';
-    out.push(`<g ${attrs}><rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${h}" rx="16" fill="${fill}" stroke="${stroke}" stroke-width="1.5" ${nd.mine ? '' : 'stroke-dasharray="4 3"'}/><text x="${pos[i].x.toFixed(1)}" y="${(pos[i].y + 5).toFixed(1)}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="15" font-weight="${nd.mine ? 600 : 400}" fill="${txt}">${esc(nd.w)}</text></g>`);
+    const fill = nd.mine ? (nd.ok ? '#08333B' : '#E8A33D') : '#FFFFFF', txt = nd.mine ? (nd.ok ? '#FFFFFF' : '#08333B') : '#5C7077';
+    const attrs = nd.mine ? `class="node" data-node="${esc(nd.id)}" tabindex="0" role="button" aria-label="${esc(nd.w)}" style="cursor:pointer"` : '';
+    out.push(`<g ${attrs}><rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${h}" rx="16" fill="${fill}" stroke="${nd.mine ? fill : '#5C7077'}" stroke-width="1.5" ${nd.mine ? '' : 'stroke-dasharray="4 3"'}/>` +
+      `<text x="${pos[i].x.toFixed(1)}" y="${(pos[i].y + 5).toFixed(1)}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="15" font-weight="${nd.mine ? 600 : 400}" fill="${txt}">${esc(nd.w)}</text></g>`);
   });
-  if (!n) out.push(`<text x="${cx}" y="${cy + 110}" text-anchor="middle" font-size="14" fill="#5C7077">還沒有字。回到「採集」，在書裡找一個這個家族的字。</text>`);
+  if (!n) out.push(`<text x="${cx}" y="${cy + 110}" text-anchor="middle" font-size="14" fill="#5C7077">還沒有字。回到「採集」，在書裡找一個含有 ${esc(m.forms[0] || '兩個字')} 的字。</text>`);
   out.push('</svg>');
   return out.join('');
 }
-$('#mnav').addEventListener('click', e => { const b = e.target.closest('.mbtn'); if (!b) return; ui.mapSel = b.dataset.id; ui.mapWord = null; renderMap(); });
-function pickNode(e){ const g = e.target.closest('.node'); if (!g) return; ui.mapWord = g.dataset.id; renderDetail(ui.mapWord); }
-$('#mapPanel').addEventListener('click', pickNode);
-$('#mapPanel').addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('.node')) { e.preventDefault(); pickNode(e); } });
-function renderDetail(id){
-  const box = $('#mapDetail'); if (!box) return;
-  const en = state.entries.find(x => x.id === id);
-  if (!en) { box.hidden = true; return; }
+$('#mnav').addEventListener('click', e => { const b = e.target.closest('.mbtn'); if (!b || b.disabled) return; ui.mapSel = b.dataset.m; renderMap(); });
+function pickNode(e){
+  const g = e.target.closest('[data-node]'); if (!g) return;
+  const en = L.entries[g.dataset.node], box = $('#mapDetail'); if (!en) return;
   box.hidden = false;
-  box.innerHTML = `
-    <div class="dw">${esc(en.word)}</div>
-    <div class="parts" style="margin-top:10px">${partsHTML(en.parts)}</div>
-    ${en.sentence ? `<div class="quote">${esc(en.sentence)}</div>` : ''}
-    ${en.gloss ? `<p style="margin:10px 0 0"><b>零件的意思：</b>${esc(en.gloss)}</p>` : ''}
-    ${en.meaning ? `<p style="margin:6px 0 0"><b>在句子裡：</b>${esc(en.meaning)}</p>` : ''}
-    <div class="kv" style="margin-top:10px"><span>詞性 <b>${esc(POS_LABEL[en.pos] || '')}</b></span><span>透明度 <b>${esc(en.clarity)}</b></span><span>狀態 ${badgeFor(en)}</span>${en.book ? `<span>出處 <b>${esc(en.book)}</b></span>` : ''}<span>記錄於 <b>W${en.unit}</b></span></div>
-    <div class="actions" style="margin-top:12px">${en.check !== 'key' ? askBtn('btn btn-quiet', en.id) : ''}<button type="button" class="danger" id="delWord">刪除這個字</button><span id="delConfirm"></span></div>`;
-  $('#delWord').addEventListener('click', () => {
-    $('#delConfirm').innerHTML = '確定刪除？ <button type="button" class="danger" id="delYes">刪除</button> <button type="button" class="btn btn-quiet" style="padding:4px 12px;font-size:.84rem" id="delNo">保留</button>';
-    $('#delYes').addEventListener('click', () => { state.entries = state.entries.filter(x => x.id !== id); markDelete(id); ui.mapWord = null; renderHeader(); renderMap(); toast('已刪除'); });
-    $('#delNo').addEventListener('click', () => { $('#delConfirm').innerHTML = ''; });
-  });
+  box.innerHTML = detailHTML(en) + `<div class="actions" style="margin-top:12px">${askBtn(en, true)}<button class="btn btn-quiet btn-sm" type="button" data-word="${esc(en.id)}">編輯／刪除</button></div>`;
 }
+$('#mapPanel').addEventListener('click', pickNode);
+$('#mapPanel').addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('[data-node]')) { e.preventDefault(); pickNode(e); } });
 
-/* ---------- word-class table ---------- */
+/* ---------- 詞性表 ---------- */
 function renderWC(){
+  const panel = $('#wcPanel');
+  if (maxReached() < 4) { panel.innerHTML = '<div class="locked"><div class="big">詞性表在 W4 開放</div>第二階段開始學字尾，那時同一個字族的名詞、動詞、形容詞會排在一起。</div>'; return; }
   const fams = new Map();
-  state.entries.filter(e => e.family && e.clarity !== '不能拆').forEach(e => { if (!fams.has(e.family)) fams.set(e.family, []); fams.get(e.family).push(e); });
+  entries().filter(e => e.family && e.clarity !== '不能拆').forEach(e => { if (!fams.has(e.family)) fams.set(e.family, []); fams.get(e.family).push(e); });
   const rows = [...fams.entries()].sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]));
-  const cols = ['n','v','adj','adv'];
-  $('#wcPanel').innerHTML = `<span class="eyebrow">詞性表</span><h2>同一個字族，換一個字尾就換一個詞性</h2>
-    <p class="sub">空格是還沒找到的形式。下次在書裡遇到，就把它補上。W4 之後，這張表會越來越完整。</p>
+  const cols = ['n', 'v', 'adj', 'adv'];
+  panel.innerHTML = `<span class="eyebrow">詞性表</span><h2>同一個字族，換一個字尾就換一個詞性</h2>
+    <p class="sub">空格是還沒找到的形式。下次在書裡遇到，就把它補上。寫作時想把句子「打包」成名詞，就從這張表找。</p>
     ${rows.length ? `<div class="tablebox"><table class="wc"><thead><tr><th>詞族</th>${cols.map(c => `<th>${POS_LABEL[c]}</th>`).join('')}</tr></thead><tbody>` +
       rows.map(([fam, es]) => {
-        const m = M.find(x => x.t === 'root' && x.forms.includes(fam));
+        const m = LIVE.find(x => x.t === 'root' && x.forms.includes(fam));
         return `<tr><th class="base">${esc(fam)}<small>${m ? esc(m.mean) : es.length + ' 個字'}</small></th>` + cols.map(c => {
           const ws = es.filter(e => e.pos === c);
           return ws.length ? `<td>${ws.map(e => `<span class="w">${esc(e.word)}</span>`).join('')}</td>` : '<td class="miss">還沒找到</td>';
         }).join('') + '</tr>';
       }).join('') + '</tbody></table></div>'
-      : '<div class="locked"><div class="big">還沒有字族</div>採集時填上「歸入詞族」，這裡就會出現。例如 development 的詞族填 develop。</div>'}`;
+      : '<div class="locked"><div class="big">還沒有字族</div>採集時填上「歸入詞族」，這裡就會出現。</div>'}`;
 }
 
-/* ---------- review ---------- */
+/* ---------- 複習 ---------- */
 function startReview(){
-  const pool = state.entries.filter(e => e.clarity !== '不能拆' && e.parts.length > 1).sort((a, b) => (a.ease || 0) - (b.ease || 0) || a.ts - b.ts).slice(0, 10);
+  const pool = entries().filter(e => e.clarity !== '不能拆' && e.parts.length > 1).sort((a, b) => (a.ease || 0) - (b.ease || 0) || (a.created || 0) - (b.created || 0)).slice(0, 10);
   ui.review = {queue: pool.map(e => e.id), i:0, shown:false, known:0};
 }
 function renderReview(){
@@ -570,137 +735,132 @@ function renderReview(){
   const r = ui.review;
   if (!r.queue.length) { panel.innerHTML = '<div class="locked"><div class="big">還沒有可以複習的字</div>先在「採集」記下幾個拆得開的字。</div>'; return; }
   if (r.i >= r.queue.length) {
-    panel.innerHTML = `<div class="card"><span class="eyebrow">這一輪結束</span><div class="word" style="font-family:var(--display)">${r.known} / ${r.queue.length}</div><p class="prompt">記得的字會慢慢排到後面，不熟的字下次會先出現。</p><div class="actions"><button class="btn btn-primary" type="button" id="again">再來一輪</button></div></div>`;
-    $('#again').addEventListener('click', () => { ui.review = null; renderReview(); });
+    panel.innerHTML = `<div class="card"><span class="eyebrow">這一輪結束</span><div class="word" style="font-family:var(--display)">${r.known} / ${r.queue.length}</div><p class="prompt">記得的字會慢慢排到後面，不熟的字下次會先出現。</p><div class="actions"><button class="btn btn-primary" type="button" data-a="again">再來一輪</button></div></div>`;
     return;
   }
-  const en = state.entries.find(x => x.id === r.queue[r.i]);
-  if (!en) { r.i++; renderReview(); return; }
+  const en = L.entries[r.queue[r.i]]; if (!en) { r.i++; renderReview(); return; }
   panel.innerHTML = `<div class="card">
     <span class="eyebrow">拆拆看 · 第 ${r.i + 1} / ${r.queue.length} 個</span>
-    <div class="progress" aria-hidden="true"><span style="width:${(r.i / r.queue.length) * 100}%"></span></div>
+    <div class="progress" aria-hidden="true"><span style="width:${r.i / r.queue.length * 100}%"></span></div>
     <div class="word">${esc(en.word)}</div>
-    ${en.sentence ? `<div class="detail"><div class="quote">${esc(en.sentence)}</div></div>` : ''}
+    ${en.sentence ? `<div class="quote" lang="en" style="text-align:left">${esc(en.sentence)}</div>` : ''}
     <p class="prompt">${r.shown ? '對照一下你的拆法和意思。' : '先在心裡拆開它：有哪些零件？在這句話裡是什麼意思？'}</p>
-    ${r.shown ? `<div class="parts">${partsHTML(en.parts)}</div>${en.gloss ? `<p class="sub" style="margin:8px 0 0">${esc(en.gloss)}</p>` : ''}${en.meaning ? `<p class="meaning">${esc(en.meaning)}</p>` : ''}` : ''}
-    <div class="actions">${r.shown ? '<button class="btn btn-quiet" type="button" data-a="again">再練習</button><button class="btn btn-primary" type="button" data-a="know">記得了</button>' : '<button class="btn btn-primary" type="button" data-a="show">看答案</button>'}</div></div>`;
+    ${r.shown ? `<div class="parts">${partsHTML(en.parts)}</div>${en.partsMeaning ? `<p class="meaning">${esc(en.partsMeaning)}</p>` : ''}${en.meaning ? `<p class="meaning"><b>${esc(en.meaning)}</b></p>` : ''}` : ''}
+    <div class="actions">${r.shown ? '<button class="btn btn-quiet" type="button" data-a="again1">再練習</button><button class="btn btn-primary" type="button" data-a="know">記得了</button>' : '<button class="btn btn-primary" type="button" data-a="show">看答案</button>'}</div></div>`;
 }
 $('#reviewPanel').addEventListener('click', e => {
-  const b = e.target.closest('[data-a]'); if (!b || !ui.review) return;
-  const r = ui.review, en = state.entries.find(x => x.id === r.queue[r.i]);
-  if (b.dataset.a === 'show') r.shown = true;
+  const b = e.target.closest('[data-a]'); if (!b) return;
+  const a = b.dataset.a;
+  if (a === 'again') { ui.review = null; renderReview(); return; }
+  const r = ui.review, en = L.entries[r.queue[r.i]];
+  if (a === 'show') r.shown = true;
   else {
-    if (en) { en.ease = Math.max(0, (en.ease || 0) + (b.dataset.a === 'know' ? 1 : -1)); markEntry(en); }
-    if (b.dataset.a === 'know') r.known++;
+    if (en) { en.ease = Math.max(0, (en.ease || 0) + (a === 'know' ? 1 : -1)); putEntry(en); }
+    if (a === 'know') r.known++;
     r.i++; r.shown = false;
   }
   renderReview();
 });
 
-/* ---------- class wall (course tier; shown disabled in the free tier) ---------- */
-const WALL_PREVIEW = [
-  {by:'小安', word:'passport', split:'pass + port', sentence:'Keep your passport in a safe place.', doubt:'這裡的 port 是港口，還是搬運？', same:3, status:'已回答',
-   answer:'兩個都對：port 原本就是「貨物和人進出、被搬運的地方」。passport 是讓你「通過港口」的文件。'},
-  {by:'Leo', word:'important', split:'im + port + ant', sentence:'It is important to drink water.', doubt:'拆得開，可是意思好像對不上？', same:2, status:'排入直播'},
-  {by:'芮芮', word:'unemployment', split:'un + employ + ment', sentence:'Unemployment rose last year.', doubt:'un 和 ment 一起出現，要先拆哪一個？', same:1, status:'待回答'}
-];
-function renderWall(){
-  if (feat('wall')) {
-    $('#wallPanel').innerHTML = `<span class="eyebrow">班級牆 · ${esc(state.classCode || '尚未加入班級')}</span>
-      <h2>這一班的提問會出現在這裡</h2>
-      <p class="sub">班級牆會在開課時啟用。到時候，你按「提問」送出的字，會和同學的問題一起出現在這裡，老師會在每週直播回答。</p>
-      <div class="locked"><div class="big">還沒有提問</div>開課後，第一個問題就從你在書裡找到的字開始。</div>`;
+/* ---------- 班級牆 ---------- */
+const ST_CLS = {'待回答':'s0', '排入直播':'s1', '已回答':'s2'};
+function qcardHTML(q, disabled){
+  return `<article class="qcard ${q.mine ? 'mine' : ''}">
+    <div class="top-line"><span class="st ${ST_CLS[q.status] || 's0'}">${esc(q.status)}</span><span>W${q.week}</span><span>${esc(q.nickname)}${q.mine ? '（我）' : ''}</span></div>
+    <div class="qw">${esc(q.word)}</div>
+    ${q.split ? `<div class="parts" style="min-height:0">${partsHTML(parseSplit(q.split))}</div>` : ''}
+    ${q.sentence ? `<div class="quote" lang="en" style="margin:0">${esc(q.sentence)}</div>` : ''}
+    <div class="doubt">${esc(q.doubt)}</div>
+    ${q.status === '已回答' && (q.note || q.verdict) ? `<div class="ans"><b>${q.verdict === 'confirmed' ? '老師確認' : q.verdict ? '老師：再看看' : '老師回答'}</b><br>${esc(q.note)}</div>` : ''}
+    <div class="rx">
+      <button type="button" data-rx="same" data-q="${esc(q.qid)}" aria-pressed="${q.myReaction === 'same'}" ${disabled || q.mine ? 'disabled' : ''}>我也這樣想 ${q.same || ''}</button>
+      <button type="button" data-rx="diff" data-q="${esc(q.qid)}" aria-pressed="${q.myReaction === 'diff'}" ${disabled || q.mine ? 'disabled' : ''}>我有不同看法 ${q.diff || ''}</button>
+    </div></article>`;
+}
+async function renderWall(){
+  const box = $('#wallPanel');
+  if (!feat('wall')) {
+    const sample = [{qid:'x1', status:'已回答', week:1, nickname:'同學 A', word:'discover', split:'dis+cover', sentence:'Scientists discovered a new kind of frog.', doubt:'dis 不是「不」嗎？「不蓋住」怎麼會變成發現？', verdict:'confirmed', note:'dis 在這裡比較接近「拿開」：把蓋子拿開，藏著的東西就被看見了。', same:3, diff:0},
+                    {qid:'x2', status:'排入直播', week:9, nickname:'同學 B', word:'opportunity', split:'op+port+unity', sentence:'This is a great opportunity to learn.', doubt:'port 是帶著東西移動，「機會」跟移動有什麼關係？', same:5, diff:1}];
+    box.innerHTML = `<div class="panel" style="margin-bottom:16px"><span class="eyebrow">${S.tier === 'advanced' ? '進階版' : '課程版功能'}</span>
+      <h2>班級牆：看同學問了什麼，老師在直播裡回答</h2>
+      <p class="sub" style="margin:0">${S.tier === 'advanced' ? '進階版沒有班級和老師；之後會由 AI 助教回答你的提問。' : '課程版的學生，可以把拿不準的字送到班級牆，看同學的提問、按「我也這樣想」，每週直播時老師會一題一題回答。下面是示意畫面。'}</p></div>
+      <div class="wall" style="opacity:.6;pointer-events:none" aria-hidden="true">${sample.map(q => qcardHTML(q, true)).join('')}</div>`;
     return;
   }
-  $('#wallPanel').innerHTML = `
-    <div class="wall-lock">
-      <span class="eyebrow">課程版功能</span>
-      <h2>班級牆：把拿不準的字，變成全班的問題</h2>
-      <p class="sub">課程版的學生加入班級後，可以把拿不準的字按「提問」送到班級牆。同學可以按「我也這樣想」，老師會在每週直播一題一題回答，回答後地圖上的狀態也會更新。</p>
-      <div class="actions"><a class="btn btn-primary" href="${esc(cfg.COURSE_URL || '#')}" target="_blank" rel="noopener">了解課程版</a>
-        <button type="button" class="btn btn-quiet" disabled aria-disabled="true">輸入班級代碼 <span class="lock">課程版</span></button></div>
-    </div>
-    <p class="proto-note">下面是班級牆的樣子（示意，無法操作）：</p>
-    <div class="posts preview" aria-hidden="true">${WALL_PREVIEW.map(p => `
-      <article class="post">
-        <div class="ph"><span class="pw">${esc(p.word)}</span><span class="qstatus">${esc(p.status)}</span><span class="by">${esc(p.by)}</span></div>
-        <div class="meta mono">${esc(p.split)}</div>
-        <div class="ps">${esc(p.sentence)}</div>
-        <div class="doubt"><b>不確定的地方</b>${esc(p.doubt)}</div>
-        ${p.answer ? `<div class="answer confirmed"><span class="ah">老師回答 · 直播</span><p>${esc(p.answer)}</p></div>` : ''}
-        <div class="votes"><button type="button" class="vote" disabled tabindex="-1">我也這樣想 ${p.same}</button><button type="button" class="vote" disabled tabindex="-1">我有不同看法 0</button></div>
-      </article>`).join('')}</div>`;
+  const maxOpen = Math.max(...S.units);
+  box.innerHTML = `<div class="panel" style="margin-bottom:16px"><span class="eyebrow">班級牆 · ${esc(S.cls ? S.cls.name : '')}</span>
+    <h2>同學問了什麼？</h2><p class="sub" style="margin:0">覺得同學問得好，按「我也這樣想」；有不同的想法，按「我有不同看法」，直播時可以說出來。</p>
+    <div class="wallbar" style="margin:14px 0 0"><select class="in" id="wallWeek" aria-label="週次"><option value="0">全部週次</option>${Array.from({length:maxOpen}, (_, i) => `<option value="${i + 1}">W${i + 1}</option>`).join('')}</select>
+    <button class="btn btn-quiet btn-sm" type="button" id="wallRefresh">重新整理</button></div></div>
+    <div id="wallList"><div class="locked">載入中…</div></div>`;
+  $('#wallWeek').value = ui.wallWeek;
+  $('#wallWeek').addEventListener('change', e => { ui.wallWeek = +e.target.value; ui.wall = null; loadWall(); });
+  $('#wallRefresh').addEventListener('click', () => { ui.wall = null; loadWall(); });
+  loadWall();
 }
-
-/* ---------- account ---------- */
-const acct = $('#acctSheet');
-$('#acctBtn').addEventListener('click', () => {
-  $('#acctTitle').textContent = state.child || '我的帳號';
-  $('#acctInfo').textContent = '紀錄會自動備份。換裝置時，用同一個 token 登入就能看到。';
-  const done = UNITS.map(u => `W${u.unit} ${u.segments.filter(segDone).length}/${u.segments.length} 段`).join('　');
-  $('#acctKv').innerHTML = `<span>Token <b class="mono">${esc(state.token)}</b></span><span>字數 <b>${state.entries.length}</b></span><span>課程 <b>${esc(done)}</b></span><span>最後備份 <b>${state.lastSync ? new Date(state.lastSync).toLocaleString('zh-TW') : '尚未'}</b></span>`;
-  $('#acctErr').textContent = ''; acct.hidden = false;
-});
-$('#acctClose').addEventListener('click', () => { acct.hidden = true; });
-acct.addEventListener('click', e => { if (e.target === acct) acct.hidden = true; });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') acct.hidden = true; });
-$('#syncNow').addEventListener('click', async () => { const ok = await syncNow(); $('#acctErr').textContent = ok ? '' : '目前連不上伺服器，紀錄先存在這台裝置，稍後會自動同步。'; if (ok) toast('已同步'); });
-$('#logout').addEventListener('click', async () => {
-  if (hasPending()) { const ok = await syncNow(); if (!ok) { $('#acctErr').textContent = '還有紀錄沒有同步，請連上網路後再登出。'; return; } }
-  acct.hidden = true; forceLogout('已登出。');
-});
-
-/* ---------- boot ---------- */
-function renderAll(){ renderHeader(); renderTabs(); renderView(); refreshSugs(); refreshParts(); }
-function start(){
-  $('#gate').hidden = true; $('#app').hidden = false;
-  if (!storeOK) $('#storeWarn').hidden = false;
-  fSplit.dataset.auto = '1';
-  renderAll();
-  if (hasPending()) scheduleSync(800);
+async function loadWall(){
+  const list = $('#wallList'); if (!list) return;
+  if (!ui.wall) {
+    try { const res = await API.call('wall', {token:S.token, week:ui.wallWeek}); if (!res.ok) throw new Error(res.error); ui.wall = res.questions; }
+    catch (e) { list.innerHTML = `<div class="panel locked">${esc(errMsg(e.message === 'Failed to fetch' ? 'network' : e.message))}</div>`; return; }
+  }
+  list.innerHTML = ui.wall.length ? `<div class="wall">${ui.wall.map(q => qcardHTML(q)).join('')}</div>`
+    : '<div class="panel locked"><div class="big">這週還沒有人提問</div>在採集紀錄上按「提問」，你的問題會出現在這裡。</div>';
 }
-/* ---------- tier: which version this student sees ---------- */
-const DEFAULT_PACK = cfg.CONTENT_URL || 'content/free.json';
-let packUrl = null;
-function applyTier(out){
-  state.child = out.child;
-  state.tier = out.tier || 'free';
-  state.tierLabel = out.tierLabel || '免費版';
-  state.features = out.features || {wall:false, ask:false};
-  state.classCode = out.classCode || '';
-  state.pack = out.pack || DEFAULT_PACK;
-}
-function setPack(p){ PACK = p; M = PACK.morphemes; MBY = Object.fromEntries(M.map(m => [m.id, m])); UNITS = PACK.units; COMP = PACK.compounds; }
-async function loadPack(url){
-  url = url || DEFAULT_PACK;
-  if (url === packUrl) return;
+$('#wallPanel').addEventListener('click', async e => {
+  const b = e.target.closest('[data-rx]'); if (!b || b.disabled) return;
+  b.disabled = true;
   try {
-    const res = await fetch(url, {cache:'no-cache'});
-    if (!res.ok) throw new Error(res.status);
-    setPack(await res.json()); packUrl = url;
-  } catch (e) {
-    if (!PACK) { setPack(await (await fetch(DEFAULT_PACK, {cache:'no-cache'})).json()); packUrl = DEFAULT_PACK; }
-  }
-  if (state && !UNITS.some(u => u.unit === state.unit)) state.unit = UNITS[0].unit;
-}
-async function boot(){
-  try { await loadPack(DEFAULT_PACK); }
-  catch (e) { document.body.innerHTML = '<p style="padding:24px">內容載入失敗，請重新整理頁面。</p>'; return; }
-  const params = new URLSearchParams(location.search);
-  const t = params.get('t');
-  if (t) { history.replaceState(null, '', location.pathname); await login(t); return; }
-  const local = loadLocal();
-  if (local && local.token) {
-    state = local;
-    await loadPack(state.pack);
-    start();
-    API.call('login', {token: state.token}).then(async out => {
-      if (out && out.ok) { applyTier(out); mergeServer(out.entries, out.progress); await loadPack(state.pack); save(); renderAll(); }
-      else if (out && out.code === 'bad_token') forceLogout('這個 token 已失效，請重新登入。');
-    }).catch(() => renderSync(true));
-    return;
-  }
-  showGate();
-}
+    const res = await API.call('react', {token:S.token, qid:b.dataset.q, kind:b.dataset.rx});
+    if (!res.ok) throw new Error(res.error);
+    ui.wall = ui.wall.map(q => q.qid === res.question.qid ? res.question : q); loadWall();
+  } catch (err) { toast(errMsg(err.message)); b.disabled = false; }
+});
+
+/* ---------- 選單、備份 ---------- */
+$('#menuBtn').addEventListener('click', () => {
+  $('#menuTitle').textContent = `${S.student.child || ''}的詞族地圖`;
+  $('#menuSub').textContent = `${S.tierInfo.label}${S.cls ? '・' + S.cls.name : ''}・登入碼 ${S.token}・${entries().length} 個字`;
+  $('#importChoice').hidden = true; $('#menuSheet').hidden = false;
+});
+try { $('#ttsFallback').checked = lsGet('wfm.ttsFallback') !== '0'; } catch (e) {}
+$('#ttsFallback').addEventListener('change', e => lsSet('wfm.ttsFallback', e.target.checked ? '1' : '0'));
+$('#logoutBtn').addEventListener('click', async () => {
+  if (Object.keys(L.dirty).length || L.deletes.length) await syncNow();
+  lsDel('wfm.token'); location.href = location.pathname;
+});
+$('#dlBtn').addEventListener('click', () => {
+  const d = new Date(), stamp = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+  const blob = new Blob([JSON.stringify({app:'word-family-map', version:2, exported:d.toISOString(), token:S.token, entries:entries().map(stripLocal)}, null, 2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `詞族地圖備份-${stamp}.json`;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+});
+let pendingImport = null;
+$('#importFile').addEventListener('change', e => {
+  const f = e.target.files && e.target.files[0]; if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try {
+      const d = JSON.parse(rd.result); if (!d || !Array.isArray(d.entries)) throw 0;
+      pendingImport = d.entries.filter(x => x && typeof x.word === 'string' && Array.isArray(x.parts)).map(x => Object.assign(x, {
+        id: x.id || 'e' + Math.random().toString(36).slice(2, 10), partsMeaning: x.partsMeaning || '', meaning: x.meaning || '',
+        unit: x.unit || x.week || ui.unit, created: x.created || x.ts || Date.now()}));
+      $('#importInfo').textContent = `備份檔裡有 ${pendingImport.length} 個字。要合併，還是取代目前的 ${entries().length} 個字？`;
+      $('#importChoice').hidden = false;
+    } catch (err) { toast('這不是詞族地圖的備份檔'); }
+    e.target.value = '';
+  };
+  rd.readAsText(f);
+});
+$('#impMerge').addEventListener('click', () => { if (!pendingImport) return; pendingImport.forEach(x => { if (!L.entries[x.id]) { x.check = checkEntry(x); putEntry(x); } }); pendingImport = null; $('#menuSheet').hidden = true; renderAll(); toast('已合併備份'); });
+$('#impReplace').addEventListener('click', () => {
+  if (!pendingImport) return;
+  entries().forEach(x => delEntry(x.id));
+  pendingImport.forEach(x => { x.check = checkEntry(x); putEntry(x); });
+  pendingImport = null; $('#menuSheet').hidden = true; renderAll(); toast('已取代為備份內容');
+});
+
+fSplit.dataset.auto = '1';
 boot();
 })();

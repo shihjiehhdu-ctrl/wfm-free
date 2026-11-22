@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>我的詞族地圖・家長申請</title>
+<title>我的詞族地圖・申請試用</title>
 <meta name="theme-color" content="#08333B">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="app.css">
@@ -11,8 +11,8 @@
 <body>
 <div class="login" style="max-width:560px">
   <div class="panel">
-    <div class="app-name">我的詞族地圖<small>家長申請</small></div>
-    <p class="sub">填好以後，孩子的登入碼會寄到您的信箱。同一個信箱、同一個孩子暱稱再申請一次，會重寄同一組登入碼。</p>
+    <div class="app-name">我的詞族地圖<small>申請試用</small></div>
+    <p class="sub">填好以後，孩子的試用登入碼會寄到您的信箱。試用版包含 W1、W4、W9、W14 四個代表單元；想上完整的 15 週課程，可以在 App 右上角按「升級正式版」，付款後選擇班級。同一個信箱、同一個孩子暱稱再申請一次，會重寄同一組登入碼。</p>
     <form id="f" novalidate>
       <div class="row2">
         <div class="field"><label for="parent">家長姓名</label><input class="in" id="parent" autocomplete="name" required></div>
@@ -24,19 +24,18 @@
           <select class="in" id="grade"><option>小四</option><option>小五</option><option selected>小六</option><option>國一</option><option>國二</option><option>國三</option><option>其他</option></select></div>
       </div>
       <div class="row2">
-        <div class="field"><label for="level">英文程度</label>
+        <div class="field" style="grid-column:1/-1"><label for="level">英文程度</label>
           <select class="in" id="level"><option>初級</option><option selected>中級（B1）</option><option>中高級（B1+）</option><option>其他</option></select><span class="hint">英檢或 iEnglish 等級都可以。</span></div>
-        <div class="field"><label for="classCode">課程班級代碼</label><input class="in mono" id="classCode" maxlength="20" autocomplete="off" autocapitalize="characters" placeholder="有的話再填"><span class="hint">報名課程的家長，會在開課通知裡拿到代碼。沒有就留空，會開通免費版。</span></div>
       </div>
       <div class="field"><label class="hint" style="font-size:.86rem"><input type="checkbox" id="agree"> 我同意以上資料用於寄送登入碼與課程通知；孩子記錄的單字只有老師看得到。</label></div>
-      <div class="actions"><button class="btn btn-primary" type="submit" id="go">寄出登入碼</button><span class="err" id="err" role="alert"></span></div>
+      <div class="actions"><button class="btn btn-primary" type="submit" id="go">申請試用</button><span class="err" id="err" role="alert"></span></div>
     </form>
     <div id="done" hidden>
       <h2 style="font-family:var(--display);color:var(--ink)">已寄出</h2>
       <p id="doneMsg"></p>
       <div class="actions"><a class="btn btn-primary" id="openApp" href="./">打開詞族地圖</a></div>
     </div>
-    <p class="hint" id="preview" hidden style="margin-top:16px">預覽模式：沒有連到後端，不會真的寄信；送出後會直接顯示一組示範登入碼。課程版請用班級代碼 <b class="mono">DEMO-A</b>。</p>
+    <p class="hint" id="preview" hidden style="margin-top:16px">預覽模式：沒有連到後端，不會真的寄信；送出後會直接顯示一組示範登入碼。</p>
   </div>
 </div>
 <script src="config.js"></script>
@@ -45,7 +44,7 @@
 (() => {
   const $ = s => document.querySelector(s), API = window.WFM_API;
   if (API.preview) $('#preview').hidden = false;
-  const ERR = {missing_fields:'請填好家長姓名、信箱和孩子暱稱。', bad_class:'找不到這個班級代碼，請確認是否輸入正確，或留空先開通免費版。', busy:'伺服器忙碌中，請稍後再試。'};
+  const ERR = {missing_fields:'請填好家長姓名、信箱和孩子暱稱。', busy:'伺服器忙碌中，請稍後再試。'};
   $('#f').addEventListener('submit', async e => {
     e.preventDefault();
     const v = id => $('#' + id).value.trim();
@@ -53,7 +52,7 @@
     if (!$('#agree').checked) { $('#err').textContent = '請勾選同意。'; return; }
     $('#go').disabled = true; $('#err').textContent = '';
     try {
-      const res = await API.call('apply', {parent:v('parent'), email:v('email'), child:v('child'), grade:v('grade'), level:v('level'), classCode:v('classCode')});
+      const res = await API.call('apply', {parent:v('parent'), email:v('email'), child:v('child'), grade:v('grade'), level:v('level')});
       if (!res.ok) throw new Error(res.error);
       $('#f').hidden = true; $('#done').hidden = false;
       if (res.demoToken) {

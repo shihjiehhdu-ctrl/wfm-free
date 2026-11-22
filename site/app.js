@@ -1,5 +1,5 @@
 /* 我的詞族地圖・學生端
- * 同一份程式給免費版、課程版、進階版用；版本由後端「學生」工作表的「版本」欄決定。
+ * 同一份程式給試用版、正式版、進階版用；版本由後端「學生」工作表的「版本」欄決定。
  * 資料先存在這台裝置（localStorage），背景同步到 Apps Script。
  */
 (() => {
@@ -12,7 +12,7 @@ const POS_LABEL = {n:'名詞', v:'動詞', adj:'形容詞', adv:'副詞', other:
 const TYPE_LABEL = {pre:'字首', root:'字根', suf:'字尾', base:'字基', cmp:'複合字'};
 const ERR = {
   bad_token:'找不到這個登入碼，請檢查是否輸入正確。', disabled:'這個登入碼已停用，請聯絡老師。', busy:'伺服器忙碌中，請稍後再試。',
-  feature_locked:'這是課程版的功能。', no_class:'你還沒有加入班級。', missing_fields:'有欄位還沒填。', own_question:'不能回應自己的提問。',
+  feature_locked:'這是正式版的功能。', not_paid:'還沒有收到付款。', class_full:'這個班已經額滿，請選別的班。', class_closed:'這個班已經停止報名。', already_paid:'已經付款了，請直接選擇班級。', already_course:'你已經是正式版了。', pay_not_ready:'付款功能還沒設定好，請聯絡我們。', no_class:'你還沒有加入班級。', missing_fields:'有欄位還沒填。', own_question:'不能回應自己的提問。',
   network:'網路連線有問題，請稍後再試。', server_error:'伺服器發生錯誤，請稍後再試。'
 };
 const errMsg = c => ERR[c] || ('發生錯誤：' + c);
@@ -40,12 +40,15 @@ function toast(msg){
 }
 
 /* ---------- boot ---------- */
+let wantUpgrade = false;
 async function boot(){
   if (API.preview) { $('#previewHint').hidden = false; }
   if (CFG.CONTACT) $('#contactLine').innerHTML = `　<a href="${esc(CFG.CONTACT)}" target="_blank" rel="noopener">需要協助</a>`;
   const q = new URLSearchParams(location.search);
   let token = (q.get('t') || '').trim().toUpperCase();
-  if (token) { lsSet('wfm.token', token); history.replaceState(null, '', location.pathname); }
+  wantUpgrade = q.has('upgrade');
+  if (token || wantUpgrade) history.replaceState(null, '', location.pathname);
+  if (token) lsSet('wfm.token', token);
   else token = (lsGet('wfm.token') || '').toUpperCase();
   if (!token) return showLogin();
   await login(token, true);
@@ -81,7 +84,7 @@ async function login(token, silent){
 }
 
 async function start(res, token, offline){
-  S = {token, student:res.student, tier:res.tier, tierInfo:res.tierInfo, cls:res.cls, units:res.units || [], questions:res.questions || []};
+  S = {token, student:res.student, tier:res.tier, tierInfo:res.tierInfo, cls:res.cls, units:res.units || [], questions:res.questions || [], upgrade:res.upgrade || {state:'na'}, price:res.price || 3000};
   try {
     const r = await fetch('content/' + S.tierInfo.pack + '.json', {cache:'no-cache'});
     P = await r.json();
@@ -101,6 +104,8 @@ async function start(res, token, offline){
   $('#storeWarn').hidden = storeOK;
   buildUnitSelect();
   renderAll();
+  renderUpgradeBtn();
+  if (wantUpgrade && S.tier === 'free') { wantUpgrade = false; openUpgrade(); }
   if (Object.keys(L.dirty).length || L.deletes.length || L.progressDirty) scheduleSync(300);
 }
 
@@ -194,7 +199,7 @@ function renderHeader(){
   const wcOpen = maxReached() >= 4;
   $('#wcLock').textContent = wcOpen ? '' : 'W4';
   $('#tab-wc').classList.toggle('off', !wcOpen);
-  $('#wallLock').textContent = feat('wall') ? '' : (S.tier === 'advanced' ? '' : '課程版');
+  $('#wallLock').textContent = feat('wall') ? '' : (S.tier === 'advanced' ? '' : '正式版');
   $('#tab-wall').classList.toggle('off', !feat('wall'));
   $('#subjectField').hidden = maxReached() < 13;
 }
@@ -246,7 +251,7 @@ function renderCourse(){
         <p class="sub">${morphs.length ? '數字是你目前收集到的字數。' : '這週沒有新的零件，把前面學過的全部用上。'}</p>
         <div class="mlist">${(morphs.length ? morphs : []).map(m => `<div class="mrow"><span class="f">${esc(mLabel(m))}</span><span class="mean">${esc(m.mean)}</span><span class="n">${countFor(m.id)} 個</span></div>`).join('')}</div>
       </div>
-      ${S.tier === 'free' ? `<div class="panel"><span class="eyebrow">免費版</span><h2>完整課程有 15 週</h2><p class="sub" style="margin:0">免費版包含 W1、W4、W9、W14 四個代表單元。完整課程會一週一週帶你學完所有字首、字尾和字根，還有班級牆、提問和每週直播。</p></div>` : ''}
+      ${S.tier === 'free' ? `<div class="panel"><span class="eyebrow">試用版</span><h2>正式版有完整的 15 週</h2><p class="sub">試用版包含 W1、W4、W9、W14 四個代表單元。正式版會一週一週帶你學完所有字首、字尾和字根，還有班級牆、提問和每週一次的線上直播。</p><button class="btn btn-primary btn-sm" type="button" data-upgrade>${S.upgrade && S.upgrade.state === 'paid' ? '選擇班級' : '升級正式版'}</button></div>` : ''}
       ${S.tier === 'course' && S.cls ? `<div class="panel"><span class="eyebrow">我的班級</span><h2>${esc(S.cls.name)}</h2><p class="sub" style="margin:0">${esc(S.cls.teacher || '')}${S.cls.live ? '　·　' + esc(S.cls.live) : ''}<br>拿不準的字，在採集紀錄上按「提問」。下週直播，老師會回答。</p></div>` : ''}
     </div>
   </div>`;
@@ -563,7 +568,7 @@ function renderLastCheck(){
 }
 function askBtn(en, big){
   const cls = big ? 'btn btn-quiet btn-sm' : 'link';
-  if (!feat('ask')) return `<button class="${cls}" type="button" disabled title="課程版功能" style="opacity:.55;cursor:not-allowed">提問（課程版）</button>`;
+  if (!feat('ask')) return `<button class="${cls}" type="button" disabled title="正式版功能" style="opacity:.55;cursor:not-allowed">提問（正式版）</button>`;
   return `<button class="${cls}" type="button" data-ask="${esc(en.id)}">提問</button>`;
 }
 function countFor(id){
@@ -782,9 +787,9 @@ async function renderWall(){
   if (!feat('wall')) {
     const sample = [{qid:'x1', status:'已回答', week:1, nickname:'同學 A', word:'discover', split:'dis+cover', sentence:'Scientists discovered a new kind of frog.', doubt:'dis 不是「不」嗎？「不蓋住」怎麼會變成發現？', verdict:'confirmed', note:'dis 在這裡比較接近「拿開」：把蓋子拿開，藏著的東西就被看見了。', same:3, diff:0},
                     {qid:'x2', status:'排入直播', week:9, nickname:'同學 B', word:'opportunity', split:'op+port+unity', sentence:'This is a great opportunity to learn.', doubt:'port 是帶著東西移動，「機會」跟移動有什麼關係？', same:5, diff:1}];
-    box.innerHTML = `<div class="panel" style="margin-bottom:16px"><span class="eyebrow">${S.tier === 'advanced' ? '進階版' : '課程版功能'}</span>
+    box.innerHTML = `<div class="panel" style="margin-bottom:16px"><span class="eyebrow">${S.tier === 'advanced' ? '進階版' : '正式版功能'}</span>
       <h2>班級牆：看同學問了什麼，老師在直播裡回答</h2>
-      <p class="sub" style="margin:0">${S.tier === 'advanced' ? '進階版沒有班級和老師；之後會由 AI 助教回答你的提問。' : '課程版的學生，可以把拿不準的字送到班級牆，看同學的提問、按「我也這樣想」，每週直播時老師會一題一題回答。下面是示意畫面。'}</p></div>
+      <p class="sub" style="margin:0">${S.tier === 'advanced' ? '進階版沒有班級和老師；之後會由 AI 助教回答你的提問。' : '正式版的學生，可以把拿不準的字送到班級牆，看同學的提問、按「我也這樣想」，每週直播時老師會一題一題回答。下面是示意畫面。'}</p></div>
       <div class="wall" style="opacity:.6;pointer-events:none" aria-hidden="true">${sample.map(q => qcardHTML(q, true)).join('')}</div>`;
     return;
   }
@@ -817,6 +822,116 @@ $('#wallPanel').addEventListener('click', async e => {
     ui.wall = ui.wall.map(q => q.qid === res.question.qid ? res.question : q); loadWall();
   } catch (err) { toast(errMsg(err.message)); b.disabled = false; }
 });
+
+/* ---------- 升級正式版：綠界付款 → 選班 ---------- */
+const UP = {classes:null, pick:null};
+function renderUpgradeBtn(){
+  const b = $('#upgradeBtn');
+  b.hidden = S.tier !== 'free';
+  b.textContent = S.upgrade.state === 'paid' ? '選擇班級' : '升級正式版';
+}
+$('#upgradeBtn').addEventListener('click', () => openUpgrade());
+document.addEventListener('click', e => { if (e.target.closest('[data-upgrade]')) openUpgrade(); });
+const money = n => 'NT$' + Number(n).toLocaleString('en-US');
+async function openUpgrade(){
+  $('#upSheet').hidden = false; UP.pick = null; UP.classes = null;
+  upView('<p class="sub">查詢中…</p>');
+  try {
+    const r = await API.call('payStatus', {token:S.token}); if (!r.ok) throw new Error(r.error);
+    S.upgrade = r.upgrade; S.price = r.price || S.price;
+  } catch (e) { upView(`<p class="err">${esc(errMsg(e.message === 'Failed to fetch' ? 'network' : e.message))}</p>`, true); return; }
+  renderUpgradeBtn();
+  if (S.upgrade.state === 'enrolled') { $('#upSheet').hidden = true; await login(S.token); return; }
+  if (S.upgrade.state === 'paid') { loadClasses(); return; }
+  if (S.upgrade.state === 'pending') {
+    upView(`<span class="eyebrow">升級正式版</span><h2>還沒收到付款結果</h2>
+      <p class="sub">刷卡完成通常幾秒內就會確認。用 ATM 或超商代碼付款的話，繳費後約需 10 到 30 分鐘。</p>
+      <div class="actions"><button class="btn btn-primary" type="button" id="upRecheck">重新查詢</button><button class="btn btn-quiet" type="button" id="upPay">重新前往付款</button><button class="btn btn-quiet" type="button" data-close>稍後再說</button></div>
+      <span class="err" id="upErr"></span>`);
+    $('#upRecheck').addEventListener('click', openUpgrade); $('#upPay').addEventListener('click', payGo);
+    return;
+  }
+  upView(`<span class="eyebrow">升級正式版</span><h2>完整的 15 週課程</h2>
+    <ul class="uplist">
+      <li><b>15 週完整內容</b>：拆、轉、根、用四個階段，所有字首、字尾和字根，依開課日期每週開放一個單元</li>
+      <li><b>每週一次 60 分鐘線上直播</b>：老師回答上週全班的提問，並預告這週的內容</li>
+      <li><b>提問與班級牆</b>：拿不準的字送給老師，也看看同學怎麼拆</li>
+      <li><b>老師判定</b>：你的紀錄上會出現「老師確認」或「老師：再看看」</li>
+      <li>試用版的紀錄全部保留，登入碼不變</li>
+    </ul>
+    <div class="price"><span>費用</span><b>${money(S.price)}</b></div>
+    <ol class="steps"><li>透過綠界科技付款（信用卡、ATM 或超商代碼）</li><li>付款完成後，選擇班級：會看到每班的開課日期和每週線上會議時間</li><li>加入班級，立即升級為正式版</li></ol>
+    <div class="actions"><button class="btn btn-primary" type="button" id="upPay">前往綠界付款</button><button class="btn btn-quiet" type="button" data-close>稍後再說</button></div>
+    <span class="err" id="upErr"></span>`);
+  $('#upPay').addEventListener('click', payGo);
+}
+function upView(html, closeBtn){
+  $('#upBox').innerHTML = html + (closeBtn ? '<div class="actions"><button class="btn btn-quiet" type="button" data-close>關閉</button></div>' : '');
+}
+async function payGo(e){
+  const btn = e && e.target; if (btn) btn.disabled = true;
+  try {
+    if (Object.keys(L.dirty).length || L.deletes.length || L.progressDirty) await syncNow();
+    const r = await API.call('payStart', {token:S.token}); if (!r.ok) throw new Error(r.error);
+    if (r.demo) {
+      upView(`<span class="eyebrow">預覽模式</span><h2>模擬綠界付款</h2><p class="sub">預覽模式不會連到綠界。正式上線後，這一步會跳到綠界的付款頁，付款完成再回到這裡。</p>
+        <div class="price"><span>訂單 ${esc(r.order)}</span><b>${money(S.price)}</b></div>
+        <div class="actions"><button class="btn btn-primary" type="button" id="demoPaid">模擬付款成功</button><button class="btn btn-quiet" type="button" data-close>取消</button></div>`);
+      $('#demoPaid').addEventListener('click', async () => { await API.call('payDemo', {token:S.token}); openUpgrade(); });
+      return;
+    }
+    const f = document.createElement('form');
+    f.method = 'POST'; f.action = r.action; f.acceptCharset = 'UTF-8'; f.style.display = 'none';
+    Object.keys(r.params).forEach(k => { const i = document.createElement('input'); i.type = 'hidden'; i.name = k; i.value = r.params[k]; f.appendChild(i); });
+    document.body.appendChild(f);
+    upView('<p class="sub">正在前往綠界付款頁…</p>');
+    f.submit();
+  } catch (err) {
+    const m = $('#upErr'); if (m) m.textContent = errMsg(err.message === 'Failed to fetch' ? 'network' : err.message);
+    if (err.message === 'already_paid') loadClasses();
+    if (btn) btn.disabled = false;
+  }
+}
+async function loadClasses(){
+  upView('<p class="sub">載入班級…</p>');
+  try { const r = await API.call('classList', {token:S.token}); if (!r.ok) throw new Error(r.error); UP.classes = r.classes; }
+  catch (e) { upView(`<p class="err">${esc(errMsg(e.message === 'Failed to fetch' ? 'network' : e.message))}</p>`, true); return; }
+  renderClasses();
+}
+function renderClasses(){
+  const cs = UP.classes || [];
+  const pick = cs.find(c => c.code === UP.pick);
+  upView(`<span class="eyebrow">付款完成 · 選擇班級</span><h2>選一個班</h2>
+    <p class="sub">每班每週有一次 60 分鐘的線上會議。開課後，課程單元會依開課日期每週開放一個。</p>
+    ${cs.length ? `<div class="clslist" role="radiogroup" aria-label="班級">${cs.map(c => {
+      const full = c.left === 0;
+      return `<button type="button" class="clscard" role="radio" aria-checked="${c.code === UP.pick}" data-cls="${esc(c.code)}" ${full ? 'disabled' : ''}>
+        <span class="cn">${esc(c.name)}</span>
+        <span class="crow"><span class="ck">起始日期</span><b>${esc(c.startLabel)}</b></span>
+        <span class="crow"><span class="ck">每週線上會議</span><b>${esc(c.live || '開課前另行通知')}</b></span>
+        ${c.teacher ? `<span class="crow"><span class="ck">老師</span><b>${esc(c.teacher)}</b></span>` : ''}
+        ${c.left >= 0 ? `<span class="seats ${full ? 'full' : ''}">${full ? '已額滿' : `剩 ${c.left} 個名額`}</span>` : ''}
+      </button>`; }).join('')}</div>`
+      : '<div class="check open"><b>目前沒有招生中的班級</b>你的付款已經保留，新的班級開放報名時，回到這裡就能選班。</div>'}
+    ${pick ? `<div class="check key"><b>確認加入「${esc(pick.name)}」</b>${esc(pick.startLabel)} 開課，每週線上會議：${esc(pick.live || '開課前另行通知')}。加入後如需換班，請聯絡老師。</div>` : ''}
+    <div class="actions"><button class="btn btn-primary" type="button" id="enrollBtn" ${pick ? '' : 'disabled'}>確認加入這個班</button><button class="btn btn-quiet" type="button" data-close>稍後再選</button></div>
+    <span class="err" id="upErr"></span>`);
+  $$('#upBox [data-cls]').forEach(b => b.addEventListener('click', () => { UP.pick = b.dataset.cls; renderClasses(); }));
+  const eb = $('#enrollBtn');
+  eb.addEventListener('click', async () => {
+    eb.disabled = true;
+    try {
+      const r = await API.call('enroll', {token:S.token, classCode:UP.pick}); if (!r.ok) throw new Error(r.error);
+      $('#upSheet').hidden = true;
+      await login(S.token);
+      toast(`已升級為正式版：${r.cls.name}`);
+    } catch (e) {
+      $('#upErr').textContent = errMsg(e.message === 'Failed to fetch' ? 'network' : e.message);
+      if (e.message === 'class_full' || e.message === 'class_closed') { UP.pick = null; setTimeout(loadClasses, 1200); }
+      eb.disabled = false;
+    }
+  });
+}
 
 /* ---------- 選單、備份 ---------- */
 $('#menuBtn').addEventListener('click', () => {

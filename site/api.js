@@ -1,7 +1,7 @@
 /* 我的詞族地圖・後端呼叫
  * API_URL 有值：POST text/plain JSON 到 Apps Script。
  * API_URL 留空：預覽模式，用這個檔案下半部的示範後端（資料存在這台裝置的 localStorage）。
- *   學生 DEMO01＝免費版　DEMOC1＝課程版（班級 DEMO-A）　DEMOA1＝進階版
+ *   學生 DEMO01＝試用版（可以按「升級正式版」模擬付款、選班）　DEMOC1＝正式版（班級 DEMO-A）　DEMOA1＝進階版
  *   老師代碼 TDEMO
  */
 (function () {
@@ -20,12 +20,13 @@
 
   /* ---------------- 示範後端 ---------------- */
   var TIERS = {
-    free:     { label: '免費版', pack: 'free',   unlock: 'all',   features: { wall: false, ask: false, ai: false } },
-    course:   { label: '課程版', pack: 'course', unlock: 'class', features: { wall: true,  ask: true,  ai: false } },
+    free:     { label: '試用版', pack: 'free',   unlock: 'all',   features: { wall: false, ask: false, ai: false } },
+    course:   { label: '正式版', pack: 'course', unlock: 'class', features: { wall: true,  ask: true,  ai: false } },
     advanced: { label: '進階版', pack: 'course', unlock: 'all',   features: { wall: false, ask: false, ai: true } }
   };
   var VERDICTS = { confirmed: 1, trap: 1, mismatch: 1, '': 1 };
-  var DBKEY = 'wfm.demo.db.v2';
+  var DBKEY = 'wfm.demo.db.v3';
+  var PRICE = 3000;
   var mem = null;
 
   function seed() {
@@ -42,7 +43,12 @@
         DEMOA1: { token: 'DEMOA1', child: '小安', tier: 'advanced', cls: '', progress: {}, nick: '' }
       },
       entries: {},
-      classes: { 'DEMO-A': { code: 'DEMO-A', name: '示範班（週六上午）', teacher: 'Hsu 老師', tcode: 'TDEMO', start: '', live: '每週六 10:00', open: 10 } },
+      classes: {
+        'DEMO-A': { code: 'DEMO-A', name: '示範班（週六上午）', teacher: 'Hsu 老師', tcode: 'TDEMO', start: '', live: '每週六 10:00–11:00', open: 10, status: '開課中' },
+        'DEMO-B': { code: 'DEMO-B', name: '十二月週六上午班', teacher: 'Hsu 老師', tcode: 'TDEMO', start: '2026-12-05', startLabel: '2026/12/05（週六）', live: '每週六 10:00–11:00', open: 1, status: '招生中', seats: 20 },
+        'DEMO-C': { code: 'DEMO-C', name: '十二月週二晚上班', teacher: 'Hsu 老師', tcode: 'TDEMO', start: '2026-12-08', startLabel: '2026/12/08（週二）', live: '每週二 20:00–21:00', open: 1, status: '招生中', seats: 2 }
+      },
+      orders: [],
       questions: [
         q('qd1', '阿哲', 1, 'discover', 'dis+cover', 'Scientists discovered a new kind of frog.', 'dis 不、相反；cover 蓋住', '發現', 'dis 不是「不」的意思嗎？「不蓋住」怎麼會變成發現？', '已回答', 'confirmed', '你的拆法是對的。dis 在這裡比較接近「拿開」：把蓋子拿開，原本藏著的東西就被看見了。回到句子：科學家「發現」了一種新的青蛙。這是半透明的字。', ['a', 'b']),
         q('qd2', 'Mia', 2, 'restaurant', 're+staurant', 'We had dinner at a small restaurant.', 're 再一次', '餐廳', 'restaurant 的 re 是「再一次」嗎？', '已回答', 'trap', '這是陷阱字。拿掉 re，剩下的 staurant 不是一個意思接得上的字，所以 restaurant 不要拆，標成「不能拆」。', ['c']),
@@ -82,6 +88,22 @@
       same: q.rx.same.length, diff: q.rx.diff.length, mine: !!token && q.token === token,
       myReaction: token ? (q.rx.same.indexOf(token) >= 0 ? 'same' : q.rx.diff.indexOf(token) >= 0 ? 'diff' : '') : '' };
   }
+  function upState(st) {
+    if (st.tierName === 'course') return { state: 'enrolled' };
+    if (st.tierName !== 'free') return { state: 'na' };
+    var os = db().orders.filter(function (o) { return o.token === st.s.token; });
+    if (os.some(function (o) { return o.paid; })) return { state: 'paid' };
+    if (os.length) return { state: 'pending', order: os[os.length - 1].no };
+    return { state: 'none' };
+  }
+  function openClasses() {
+    var n = {};
+    Object.keys(db().students).forEach(function (t) { var s = db().students[t]; if (s.tier === 'course' && s.cls) n[s.cls] = (n[s.cls] || 0) + 1; });
+    return Object.keys(db().classes).map(function (k) { return db().classes[k]; }).filter(function (c) { return c.status === '招生中'; })
+      .map(function (c) { return { code: c.code, name: c.name, teacher: c.teacher, start: c.start, startLabel: c.startLabel, live: c.live, seats: c.seats || 0,
+        left: c.seats ? Math.max(0, c.seats - (n[c.code] || 0)) : -1 }; })
+      .sort(function (a, b) { return a.start < b.start ? -1 : 1; });
+  }
   function pubClass(c) { return { code: c.code, name: c.name, teacher: c.teacher, start: c.start, live: c.live }; }
   function teacher(code) {
     code = String(code || '').toUpperCase();
@@ -98,9 +120,8 @@
     apply: function (r) {
       if (!r.email || !r.child || !r.parent) return fail('missing_fields');
       var code = String(r.classCode || '').toUpperCase();
-      if (code && !db().classes[code]) return fail('bad_class');
       var t = genToken();
-      db().students[t] = { token: t, child: r.child, tier: code ? 'course' : 'free', cls: code, progress: {}, nick: '' };
+      db().students[t] = { token: t, child: r.child, tier: 'free', cls: '', progress: {}, nick: '' };
       save();
       return { ok: true, resent: false, mailed: false, demoToken: t };
     },
@@ -110,7 +131,7 @@
       return { ok: true, student: { token: st.s.token, child: st.s.child, nickname: st.s.nick || st.s.child },
         tier: st.tierName, tierInfo: { name: st.tierName, label: st.tier.label, pack: st.tier.pack, features: st.tier.features },
         cls: st.cls ? pubClass(st.cls) : null, units: units(st), entries: Object.keys(es).map(function (k) { return es[k]; }),
-        progress: st.s.progress || {}, questions: st.tier.features.ask ? H._mine(st) : [], now: Date.now() };
+        progress: st.s.progress || {}, questions: st.tier.features.ask ? H._mine(st) : [], upgrade: upState(st), price: PRICE, now: Date.now() };
     },
     _mine: function (st) { return db().questions.filter(function (q) { return q.token === st.s.token; }).map(function (q) { return pubQ(q, st.s.token); }); },
     sync: function (r) {
@@ -151,6 +172,35 @@
       var i = q.rx[k].indexOf(t); if (i >= 0) q.rx[k].splice(i, 1); else q.rx[k].push(t);
       save();
       return { ok: true, question: pubQ(q, t) };
+    },
+    payStart: function (r) {
+      var st = student(r.token); if (!st) return fail('bad_token');
+      var u = upState(st).state;
+      if (u === 'enrolled' || u === 'na') return fail('already_course');
+      if (u === 'paid') return fail('already_paid');
+      var no = 'WFM' + Date.now().toString().slice(-12);
+      db().orders.push({ no: no, token: st.s.token, paid: false }); save();
+      return { ok: true, demo: true, order: no };
+    },
+    payDemo: function (r) {
+      var st = student(r.token); if (!st) return fail('bad_token');
+      db().orders.forEach(function (o) { if (o.token === st.s.token) o.paid = true; }); save();
+      return { ok: true };
+    },
+    payStatus: function (r) { var st = student(r.token); if (!st) return fail('bad_token'); return { ok: true, upgrade: upState(st), price: PRICE }; },
+    classList: function (r) {
+      var st = student(r.token); if (!st) return fail('bad_token');
+      if (upState(st).state !== 'paid') return fail('not_paid');
+      return { ok: true, classes: openClasses() };
+    },
+    enroll: function (r) {
+      var st = student(r.token); if (!st) return fail('bad_token');
+      if (upState(st).state !== 'paid') return fail('not_paid');
+      var c = openClasses().filter(function (x) { return x.code === String(r.classCode || '').toUpperCase(); })[0];
+      if (!c) return fail('class_closed');
+      if (c.left === 0) return fail('class_full');
+      st.s.tier = 'course'; st.s.cls = c.code; save();
+      return { ok: true, cls: c };
     },
     tLogin: function (r) {
       var cs = teacher(r.teacherCode); if (!cs) return fail('bad_teacher');

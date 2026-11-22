@@ -23,8 +23,8 @@
       </div>
       <div class="actions"><button class="btn btn-primary" type="submit" id="loginBtn">登入</button><span class="err" id="loginErr" role="alert"></span></div>
     </form>
-    <p class="hint" style="margin-top:18px">還沒有登入碼？<a href="apply.html">家長申請</a><span id="contactLine"></span></p>
-    <p class="hint" id="previewHint" hidden>預覽模式：輸入 <b class="mono">DEMO01</b>（免費版）、<b class="mono">DEMOC1</b>（課程版）或 <b class="mono">DEMOA1</b>（進階版）。</p>
+    <p class="hint" style="margin-top:18px">還沒有登入碼？<a href="apply.html">家長申請試用</a><span id="contactLine"></span></p>
+    <p class="hint" id="previewHint" hidden>預覽模式：輸入 <b class="mono">DEMO01</b>（試用版）、<b class="mono">DEMOC1</b>（正式版）或 <b class="mono">DEMOA1</b>（進階版）。</p>
   </div>
 </div>
 
@@ -39,6 +39,7 @@
     <span class="pill tier" id="tierPill"></span>
     <span class="count-pill" id="countPill"></span>
     <span class="sync" id="syncDot" title="已同步"></span>
+    <button class="btn btn-primary btn-sm" id="upgradeBtn" type="button" hidden>升級正式版</button>
     <button class="ghost-btn" id="menuBtn" type="button">選單</button>
   </div>
   <div class="wrap gutter">
@@ -188,6 +189,9 @@
     </div>
   </form>
 </div>
+
+<!-- 升級正式版 -->
+<div class="sheet" id="upSheet" hidden><div class="panel" role="dialog" aria-modal="true" aria-label="升級正式版" id="upBox"></div></div>
 
 <!-- 選單 -->
 <div class="sheet" id="menuSheet" hidden>
